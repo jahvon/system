@@ -1,0 +1,53 @@
+[user]
+    name = ${GIT_USER_NAME}
+    email = ${GIT_USER_EMAIL}
+
+[github]
+    user = ${GITHUB_USER}
+
+[credential]
+    helper = ${GIT_CREDENTIAL_HELPER}
+
+[core]
+	excludesfile = ~/.gitignore_global
+	editor = nvim
+
+[include]
+	path = ~/.gitconfig.local
+
+[aliases]
+    unstage = reset HEAD --
+    last = log -1 HEAD
+
+[url "ssh://git@github.com/"]
+    insteadOf = https://github.com/
+[url "ssh://git@github.com/"]
+    insteadOf = gh:
+
+[init]
+	defaultBranch = main
+
+[commit]
+    template = ~/.gitmessage
+
+[push]
+	autoSetupRemote = true
+
+[pull]
+	ff = only
+
+[color]
+    ui = auto
+[color "branch"]
+    current = yellow reverse
+    local = yellow
+    remote = green
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = red

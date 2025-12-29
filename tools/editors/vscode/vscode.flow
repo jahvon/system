@@ -1,0 +1,42 @@
+visibility: private
+tags: [ide]
+executables:
+  - verb: run
+    name: vscode-backup
+    exec:
+      cmd: |  #!/bin/bash
+        set -e
+
+        SETTINGS_FILE="$HOME/Library/Application Support/Code/User/settings.json"
+        BACKUP_FILE="$FLOW_DEFINITION_DIR/settings-backup.json"
+        echo "Backing up VS Code configuration to $BACKUP_FILE..."
+        cp "$SETTINGS_FILE" "$BACKUP_FILE"
+
+  - verb: run
+    name: vscode-sync
+    exec:
+      cmd: |  #!/bin/bash
+        set -e
+        SETTINGS_FILE="$HOME/Library/Application Support/Code/User/settings.json"
+        BACKUP_FILE="$FLOW_DEFINITION_DIR/settings.json"
+
+        echo "Syncing VS Code configuration via merge..."
+        tmpfile=$(mktemp)
+        jq -s '.[0] * .[1]' "$SETTINGS_FILE" "$BACKUP_FILE" > "$tmpfile" && mv "$tmpfile" "$SETTINGS_FILE"
+
+  - verb: open
+    visibility: public
+    name: vscode
+    launch:
+      args:
+        - pos: 1
+          envKey: URI
+          default: "."
+      uri: $URI
+      app: "Visual Studio Code"
+
+  - verb: "open"
+    name: "workspace"
+    launch:
+      uri: "$FLOW_WORKSPACE_PATH"
+      wait: true

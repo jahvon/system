@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: packages
+tags: [packages, fonts, completions]
+description: Common package installation - shell completions and fonts
+
+imports:
+  - install-autocompletions.sh
+
+executables:
+  - verb: install
+    name: fonts
+    description: Install Karla and MonoLisa fonts
+    exec:
+      cmd: |
+        set -e
+
+        echo "Installing fonts..."
+        FONTS_DIR="$FLOW_DEFINITION_DIR/../preferences/fonts"
+        tffFiles=$(find "$FONTS_DIR" -type f -name "*.ttf" 2>/dev/null || echo "")
+
+        if [ -z "$tffFiles" ]; then
+          echo "[WARN] No font files found in $FONTS_DIR"
+          exit 0
+        fi
+
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          for file in $tffFiles; do
+            cp "$file" ~/Library/Fonts
+          done
+        else
+          mkdir -p ~/.local/share/fonts
+          for file in $tffFiles; do
+            cp "$file" ~/.local/share/fonts
+          done
+          fc-cache -f
+        fi
+
+        echo "[DONE] Fonts installed"

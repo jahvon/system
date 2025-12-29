@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+namespace: flow
+visibility: public
+description: flow quick actions executables.
+tags: [flow, cli, action, tools]
+executables:
+- verb: create
+  name: workspace
+  description: Interactive setup for a new workspace in current directory.
+  exec:
+    params:
+      - prompt: "Workspace name:"
+        envKey: WORKSPACE_NAME
+      - prompt: "Set as current workspace? (y/n)"
+        envKey: SET_CURRENT
+        default: "y"
+    cmd: |
+      set -e
+      if [ "$SET_CURRENT" = "y" ] || [ "$SET_CURRENT" = "yes" ]; then
+        flow workspace add "$WORKSPACE_NAME" . --set
+      else
+        flow workspace add "$WORKSPACE_NAME" .
+      fi
+
+- verb: install
+  name: workspace
+  description: Clone and initialize a workspace from GitHub.
+  exec:
+    params:
+      - prompt: "GitHub repository (e.g. jahvon/kube):"
+        envKey: REPO
+      - prompt: "Set as current workspace? (y/n)"
+        envKey: SET_CURRENT
+        default: "y"
+    cmd: |
+      set -e
+      if [ -d "$HOME/workspaces/github.com/$REPO" ]; then
+        echo "$REPO already cloned"
+      else
+        git clone "https://github.com/$REPO.git" "$HOME/workspaces/github.com/$REPO"
+      fi
+      
+      name=$(echo "$REPO" | cut -d'/' -f2)
+      if [ "$SET_CURRENT" = "y" ] || [ "$SET_CURRENT" = "yes" ]; then
+        flow workspace add "$name" "$HOME/workspaces/github.com/$REPO" --set
+      else
+        flow workspace add "$name" "$HOME/workspaces/github.com/$REPO"
+      fi

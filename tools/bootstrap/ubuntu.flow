@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: bootstrap
+tags: [bootstrap, ubuntu, linux]
+description: Ubuntu-specific bootstrap executables
+
+executables:
+  - verb: run
+    name: ubuntu
+    description: |
+      Complete Ubuntu bootstrap - installs packages, Docker, Git, and dotfiles.
+
+      **What it does:**
+      1. Installs Zsh
+      2. Sets up Git configuration and SSH keys
+      3. Installs core system packages (curl, wget, git, jq, tmux, neovim, etc.)
+      4. Installs and configures Docker
+      5. Installs shell completions
+      6. Applies dotfiles
+    serial:
+      failFast: true
+      execs:
+        - cmd: echo "Running Ubuntu-specific setup..."
+
+        - cmd: |
+            echo ""
+            if (command -v zsh > /dev/null); then
+              echo "[OK] Zsh is already installed"
+            else
+              echo "Installing Zsh..."
+              sudo apt-get update
+              sudo apt-get install -y zsh
+            fi
+
+        - cmd: |
+            echo ""
+            echo "Installing core system packages..."
+        - ref: install packages:ubuntu
+
+        - cmd: |
+            echo ""
+            echo "Installing Docker..."
+        - ref: install packages:docker
+
+        - cmd: |
+            echo ""
+            echo "Installing shell completions..."
+        - ref: install packages:completions
+
+        - cmd: |
+            echo ""
+            echo "Setting up Git configuration..."
+        - ref: setup dotfiles:git
+
+        - cmd: |
+            echo ""
+            echo "Setting up dotfiles..."
+        - ref: apply dotfiles:dotfiles
+
+        - cmd: |
+            echo ""
+            echo "[DONE] Ubuntu setup complete"
+            echo "[INFO] Log out and back in for group changes (Docker)"
+            echo "[INFO] Test Docker: docker run hello-world"
+
+  - verb: run
+    name: ubuntu-mini
+    description: |
+      Minimal Ubuntu bootstrap - core packages and Git only.
+
+      **What it does:**
+      1. Installs core system packages
+      2. Sets up Git configuration
+    serial:
+      failFast: true
+      execs:
+        - cmd: echo "Running minimal Ubuntu setup..."
+
+        - ref: install packages:ubuntu
+        - ref: setup dotfiles:git
+
+        - cmd: echo "[DONE] Minimal Ubuntu setup complete"

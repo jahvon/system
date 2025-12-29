@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: packages
+tags: [packages, macos, homebrew]
+description: macOS package management - Homebrew and Xcode tools
+
+imports:
+  - macos-install-core.sh

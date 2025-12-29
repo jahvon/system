@@ -1,0 +1,12 @@
+visibility: public
+tags: [git]
+executables:
+  - verb: new
+    name: commit
+    exec:
+      file: commit.sh
+
+  - verb: new
+    name: branch
+    exec:
+      file: init-branch.sh

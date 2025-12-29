@@ -1,0 +1,53 @@
+visibility: public
+namespace: jetbrains
+tags: [ide]
+executables:
+  - verb: run
+    name: goland-backup
+    exec:
+      cmd: |  #!/bin/bash
+        set -e
+        GOLAND_CONFIG_DIR="$HOME/Library/Application Support/JetBrains/GoLand2024.2"
+        BACKUP_DIR="$FLOW_DEFINITION_DIR/goland-config"
+        ALLOWLIST_FILE="$FLOW_DEFINITION_DIR/goland_allowlist.txt"
+
+        echo "Backing up Goland configuration..."
+        while IFS= read -r file; do
+            if [ -f "$GOLAND_CONFIG_DIR/$file" ]; then
+                mkdir -p "$BACKUP_DIR/$(dirname "$file")"
+                cp "$GOLAND_CONFIG_DIR/$file" "$BACKUP_DIR/$file"
+                echo "Backed up: $file"
+            else
+                echo "File not found: $file"
+            fi
+        done < "$ALLOWLIST_FILE"
+
+  - verb: run
+    name: goland-sync
+    exec:
+      cmd: |  #!/bin/bash
+        set -e
+        GOLAND_CONFIG_DIR="$HOME/Library/Application Support/JetBrains/GoLand2024.1"
+        BACKUP_DIR="$FLOW_DEFINITION_DIR/goland-config"
+        ALLOWLIST_FILE="$FLOW_DEFINITION_DIR/goland_allowlist.txt"
+
+        echo "Syncing Goland configuration from allowlist..."
+        while IFS= read -r file; do
+            if [ -f "$BACKUP_DIR/$file" ]; then
+                mkdir -p "$GOLAND_CONFIG_DIR/$(dirname "$file")"
+                cp "$BACKUP_DIR/$file" "$GOLAND_CONFIG_DIR/$file"
+                echo "Synced: $file"
+            else
+                echo "Backup file not found: $file"
+            fi
+        done < "$ALLOWLIST_FILE"
+
+  - verb: open
+    name: goland
+    launch:
+      args:
+        - pos: 1
+          envKey: URI
+          default: "."
+      uri: $URI
+      app: GoLand

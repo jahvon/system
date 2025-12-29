@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+description: |
+  Todoist task management executables using the Todoist REST API.
+
+  **Setup Required:**
+  1. Get your Todoist API token from https://todoist.com/prefs/integrations
+  2. Store it in flow vault: `flow secret set todoist-api-token`
+
+tags: [productivity, api, todoist]
+visibility: public
+
+executables:
+  - verb: get
+    name: tasks
+    aliases: [todos]
+    description: |
+      Fetch tasks from Todoist and render them in a formatted view.
+
+      Uses the Todoist REST API to get your active tasks and displays them
+      in a readable markdown format with due dates, priorities, and project info.
+    serial:
+      execs:
+        - cmd: mkdir -p .data
+        - ref: request tasks
+        - ref: show tasks
+
+  - verb: request
+    name: tasks
+    aliases: [todos]
+    description: Fetch tasks from Todoist API and save to JSON file
+    request:
+      method: GET
+      url: "https://api.todoist.com/rest/v2/tasks"
+      headers:
+        Authorization: "Bearer $TODOIST_API_TOKEN"
+      params:
+        - secretRef: todoist-api-token
+          envKey: TODOIST_API_TOKEN
+      validStatusCodes: [200]
+      logResponse: true
+      responseFile:
+        filename: ".data/tasks.json"
+        saveAs: json
+
+  - verb: show
+    name: tasks
+    aliases: [todos]
+    description: Render tasks from JSON into markdown format
+    render:
+      templateFile: "tasks-template.md"
+      templateDataFile: ".data/tasks.json"
+
+  - verb: add
+    name: task
+    aliases: [todo]
+    description: |
+      Add a new task to Todoist.
+
+      Simply prompts for what you want to do and creates the task.
+      Due dates and other details can be added in Todoist afterward.
+    request:
+      method: POST
+      url: "https://api.todoist.com/rest/v2/tasks"
+      headers:
+        Authorization: "Bearer $TODOIST_API_TOKEN"
+        Content-Type: "application/json"
+      params:
+        - secretRef: todoist-api-token
+          envKey: TODOIST_API_TOKEN
+        - prompt: "What do you need to do?"
+          envKey: TASK_CONTENT
+      body: |
+        {
+          "content": "$TASK_CONTENT"
+        }
+      validStatusCodes: [200]
+      transformResponse: |
+        "✅ Added task: " + fromJSON(body)["content"]
+
+  - verb: clean
+    name: task-temp
+    description: Clean up temporary files created during task operations
+    exec:
+      cmd: rm -rf .data
