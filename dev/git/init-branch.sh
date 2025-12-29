@@ -32,7 +32,7 @@ if has_dirty_changes; then
   git status
   if confirm "Do you want to keep these changes?"; then
     read -r -p "Enter stash name: " stash_name
-    git stash push -m "$stash_name"
+    git stash push -m "$stash_name" .
   else
     git reset --hard
   fi
