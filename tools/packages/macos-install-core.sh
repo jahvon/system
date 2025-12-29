@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# f:verb=install f:name=brew
+# f:verb=install f:name=macos
 # f:alias=homebrew
 # f:desc=Run brew bundle to install packages from Brewfile and update Homebrew
 
@@ -65,8 +65,6 @@ brew "protobuf"
 brew "kubectl"
 brew "kubectx"
 brew "helm"
-brew "fluxcd/tap/flux"
-brew "talosctl"
 
 brew "k9s"
 brew "kind"

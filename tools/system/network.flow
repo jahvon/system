@@ -1,4 +1,8 @@
 visibility: public
+namespace: system
+tags: [network, utilities]
+description: Network utilities and diagnostics
+
 executables:
   - verb: show
     name: nameservers

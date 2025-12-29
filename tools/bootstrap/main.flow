@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: bootstrap
+tags: [bootstrap, setup, system]
+description: Main system bootstrap orchestration for macOS and Ubuntu
+
+executables:
+  - verb: run
+    description: |
+      Bootstrap a new system (macOS or Ubuntu) - auto-detects platform and runs appropriate setup.
+
+      **What it does:**
+      1. Detects operating system
+      2. Installs Flow CLI if needed
+      3. Runs platform-specific package installation
+      4. Applies dotfiles configuration
+    exec:
+      cmd: |
+        set -e
+
+        # Detect OS
+        OS_TYPE="unknown"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          OS_TYPE="macos"
+        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+          if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            if [[ "$ID" == "ubuntu" ]]; then
+              OS_TYPE="ubuntu"
+            fi
+          fi
+        fi
+
+        echo "Starting System Bootstrap"
+        echo "========================="
+        echo "Detected OS: $OS_TYPE"
+        echo ""
+
+        if [ "$OS_TYPE" = "unknown" ]; then
+          echo "[ERROR] Unsupported operating system: $OSTYPE"
+          echo "This script supports macOS and Ubuntu only."
+          exit 1
+        fi
+
+        # Run platform-specific bootstrap
+        if [ "$OS_TYPE" = "macos" ]; then
+          flow run bootstrap:macos -x
+        elif [ "$OS_TYPE" = "ubuntu" ]; then
+          flow run bootstrap:ubuntu -x
+        fi
+
+        echo ""
+        echo "[DONE] System Bootstrap Complete"
+        echo "================================="
+        echo ""
+        echo "Platform: $OS_TYPE"
+        echo ""
+        echo "Next steps:"
+        echo "  1. If using zsh for the first time: chsh -s \$(which zsh)"
+        echo "  2. Restart your terminal"
+        echo "  3. Explore available commands: flow browse"
+        echo ""

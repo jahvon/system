@@ -14,7 +14,6 @@
 #   style    (white spaces, formatting, linting fixes, etc.)
 #   docs     (changes to documentation)
 #   test     (adding or refactoring tests)
-#   ci       (changes to CI configurations and scripts)
 #   chore    (dependency updates and misc maintenance changes)
 #   wip      (work in progress commit -- these should be squashed before merging)
 #

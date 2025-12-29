@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: packages
+tags: [packages, ubuntu, apt, docker]
+description: Ubuntu package management - APT packages and Docker
+
+imports:
+  - ubuntu-install-core.sh
+  - ubuntu-install-docker.sh
+

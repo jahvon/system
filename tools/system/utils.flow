@@ -1,5 +1,10 @@
 # yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
 visibility: public
+namespace: system
+tags: [utilities, tools]
+description: General system utilities and helper tools
+
 executables:
   - verb: generate
     name: password

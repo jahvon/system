@@ -13,9 +13,3 @@ if (command -v flow > /dev/null); then
   touch ~/.oh-my-zsh/completions/_flow
   flow completion zsh > ~/.oh-my-zsh/completions/_flow
 fi
-
-if (command -v flux > /dev/null); then
-  echo "Updating flux zsh autocompletion..."
-  touch ~/.oh-my-zsh/completions/_flux
-  flux completion zsh > ~/.oh-my-zsh/completions/_flux
-fi

@@ -1,0 +1,203 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: dotfiles
+tags: [dotfiles, shell, zsh, git]
+description: Manage dotfiles and shell configuration without chezmoi
+
+imports:
+  - git-setup.sh
+
+executables:
+  # -- ZSH and Oh-My-Zsh Setup --
+
+  - verb: install
+    name: oh-my-zsh
+    description: Install Oh-My-Zsh and required plugins
+    exec:
+      cmd: |
+        # Install Oh-My-Zsh
+        if [ ! -d "$HOME/.oh-my-zsh" ]; then
+          echo "Installing Oh-My-Zsh..."
+          sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        else
+          echo "[OK] Oh-My-Zsh already installed"
+        fi
+
+        # Install zsh-autosuggestions
+        ZSH_CUSTOM=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
+        if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
+          echo "Installing zsh-autosuggestions..."
+          git clone https://github.com/zsh-users/zsh-autosuggestions.git \
+            $ZSH_CUSTOM/plugins/zsh-autosuggestions
+        else
+          echo "[OK] zsh-autosuggestions already installed"
+        fi
+
+        # Install zsh-syntax-highlighting
+        if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
+          echo "Installing zsh-syntax-highlighting..."
+          git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
+            $ZSH_CUSTOM/plugins/zsh-syntax-highlighting
+        else
+          echo "[OK] zsh-syntax-highlighting already installed"
+        fi
+
+        # Install Powerlevel10k theme
+        if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
+          echo "Installing Powerlevel10k theme..."
+          git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
+            $ZSH_CUSTOM/themes/powerlevel10k
+        else
+          echo "[OK] Powerlevel10k already installed"
+        fi
+
+        echo "[DONE] Oh-My-Zsh and plugins installed"
+
+  # -- Individual Dotfile Installers --
+
+  - verb: install
+    name: gitconfig
+    description: Install .gitconfig with user information
+    exec:
+      params:
+        - envKey: GIT_USER_NAME
+          prompt: "Git user name"
+        - envKey: GIT_USER_EMAIL
+          prompt: "Git email address"
+        - envKey: GITHUB_USER
+          prompt: "GitHub username"
+      cmd: |
+        echo "Installing .gitconfig..."
+        TEMPLATE_FILE="templates/gitconfig"
+        envsubst < $TEMPLATE_FILE > $HOME/.gitconfig
+
+        # Create local override file if it doesn't exist
+        touch $HOME/.gitconfig.local
+
+        echo "[DONE] .gitconfig installed"
+
+  - verb: install
+    name: gitignore
+    description: Install global .gitignore_global
+    exec:
+      cmd: |
+        echo "Installing .gitignore_global..."
+        cp templates/gitignore_global $HOME/.gitignore_global
+        echo "[DONE] .gitignore_global installed"
+
+  - verb: install
+    name: gitmessage
+    description: Install .gitmessage commit template
+    exec:
+      cmd: |
+        echo "Installing .gitmessage..."
+        cp templates/gitmessage $HOME/.gitmessage
+        echo "[DONE] .gitmessage installed"
+
+  - verb: install
+    name: zsh-config
+    description: Install .zshrc, .zshenv, and .zprofile (platform-aware)
+    exec:
+      cmd: |
+        echo "Installing zsh configuration files..."
+
+        # Detect OS and use appropriate zshrc
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          echo "Using macOS zshrc..."
+          cp templates/zshrc $HOME/.zshrc
+        else
+          echo "Using Ubuntu/Linux zshrc..."
+          cp templates/zshrc-mini $HOME/.zshrc
+        fi
+
+        cp templates/zshenv $HOME/.zshenv
+        cp templates/zprofile $HOME/.zprofile
+        cp templates/p10k.zsh $HOME/.p10k.zsh
+
+        # Create local override files if they don't exist
+        touch $HOME/.zshrc.local
+        touch $HOME/.zshenv.local
+
+        # Create hushlogin to suppress login messages
+        touch $HOME/.hushlogin
+
+        echo "[DONE] Zsh configuration installed"
+
+  # -- Main Apply Executables --
+
+  - verb: apply
+    name: dotfiles
+    aliases: [setup-dotfiles]
+    description: |
+      Apply all dotfiles - installs Oh-My-Zsh, plugins, and all dotfile configurations.
+
+      This is the main dotfile setup command for new systems.
+    serial:
+      failFast: true
+      execs:
+        - cmd: echo "Setting up dotfiles with Flow..."
+
+        - ref: install dotfiles:oh-my-zsh
+
+        - ref: install dotfiles:gitconfig
+
+        - ref: install dotfiles:gitignore
+
+        - ref: install dotfiles:gitmessage
+
+        - ref: install dotfiles:zsh-config
+
+        - cmd: |
+            echo ""
+            echo "[DONE] Dotfiles Applied Successfully"
+            echo "====================================="
+            echo ""
+            echo "Next steps:"
+            echo "  1. If using zsh for the first time: chsh -s \$(which zsh)"
+            echo "  2. Restart your shell or run: source ~/.zshrc"
+            echo "  3. Edit local overrides in ~/.zshrc.local or ~/.zshenv.local"
+            echo ""
+
+  - verb: update
+    name: dotfiles
+    description: |
+      Update existing dotfiles from templates (preserves local overrides).
+
+      Use this to pull the latest dotfile changes from the repo.
+    serial:
+      execs:
+        - cmd: echo "Updating dotfiles..."
+
+        - ref: install dotfiles:gitignore
+        - ref: install dotfiles:gitmessage
+        - ref: install dotfiles:zsh-config
+
+        - cmd: |
+            echo ""
+            echo "[DONE] Dotfiles updated"
+            echo "[INFO] .gitconfig was NOT updated (contains personal info)"
+            echo "[INFO] Restart your shell to apply changes: source ~/.zshrc"
+
+  - verb: show
+    description: Show which dotfiles are managed by Flow
+    exec:
+      cmd: |
+        echo "Flow-Managed Dotfiles"
+        echo "====================="
+        echo ""
+        echo "Main Configuration Files:"
+        ls -lh ~/.gitconfig ~/.gitignore_global ~/.gitmessage 2>/dev/null || true
+        echo ""
+        echo "Zsh Configuration:"
+        ls -lh ~/.zshrc ~/.zshenv ~/.zprofile ~/.p10k.zsh 2>/dev/null || true
+        echo ""
+        echo "Local Overrides (not managed by Flow):"
+        ls -lh ~/.gitconfig.local ~/.zshrc.local ~/.zshenv.local 2>/dev/null || true
+        echo ""
+        echo "Oh-My-Zsh Installation:"
+        if [ -d "$HOME/.oh-my-zsh" ]; then
+          echo "  [OK] Installed at: $HOME/.oh-my-zsh"
+        else
+          echo "  [NOT FOUND] Not installed"
+        fi

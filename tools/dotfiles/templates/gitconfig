@@ -1,18 +1,17 @@
 [user]
-    name = {{ .name }}
-    email = {{ .email }}
+    name = ${GIT_USER_NAME}
+    email = ${GIT_USER_EMAIL}
 
 [github]
-    user = {{ .github }}
+    user = ${GITHUB_USER}
 
-{{ if eq .chezmoi.os "darwin" -}}
 [credential]
-    helper = osxkeychain
-{{- end }}
+    helper = ${GIT_CREDENTIAL_HELPER}
 
 [core]
 	excludesfile = ~/.gitignore_global
 	editor = nvim
+
 [include]
 	path = ~/.gitconfig.local
 
@@ -27,10 +26,13 @@
 
 [init]
 	defaultBranch = main
+
 [commit]
     template = ~/.gitmessage
+
 [push]
 	autoSetupRemote = true
+
 [pull]
 	ff = only
 

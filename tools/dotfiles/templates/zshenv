@@ -1,10 +1,10 @@
-{{ if eq .chezmoi.os "darwin" -}}
-export CACHE_ROOT="$HOME/Library/Caches"
-{{ else if eq .chezmoi.os "linux" -}}
-CACHE_HOME=$XDG_CONFIG_HOME
-if [[ -z $CACHE_HOME ]]; then CACHE_HOME=$HOME; fi
-export CACHE_ROOT="$CACHE_HOME/.cache"
-{{ end -}}
+# Set cache root based on OS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export CACHE_ROOT="$HOME/Library/Caches"
+else
+  CACHE_HOME=${XDG_CONFIG_HOME:-$HOME}
+  export CACHE_ROOT="$CACHE_HOME/.cache"
+fi
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -19,9 +19,14 @@ export SANDBOX="$WORKSPACES/sandbox"
 export TOOLS="$WORKSPACES/tools"
 export DOWNLOADS="$HOME/Downloads"
 
-export OBSIDIAN_VAULT="$HOME/Documents/Knowledge\ Library"
+export OBSIDIAN_VAULT="$HOME/Documents/Knowledge Library"
 
 [[ -f ~/.flowkey ]] && export FLOW_VAULT_KEY=$(cat ~/.flowkey)
 
 # Local config
 [[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
+
+# Programming Languages
+[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"

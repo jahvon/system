@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: bootstrap
+tags: [bootstrap, macos, setup]
+description: macOS-specific bootstrap executables
+
+executables:
+  - verb: run
+    name: macos
+    description: |
+      Complete macOS bootstrap - installs packages, tools, and dotfiles.
+
+      **What it does:**
+      1. Installs Zsh
+      2. Sets up Git configuration and SSH keys
+      3. Installs Homebrew packages (IDEs, databases, dev tools)
+      4. Installs shell completions
+      5. Applies dotfiles
+    serial:
+      failFast: true
+      execs:
+        - cmd: echo "Running macOS-specific setup..."
+
+        - cmd: |
+            echo ""
+            if (command -v zsh > /dev/null); then
+              echo "[OK] Zsh is already installed"
+            else
+              echo "Installing Zsh..."
+              brew install zsh
+            fi
+
+        - cmd: |
+            echo ""
+            echo "Installing Homebrew packages..."
+        - ref: install packages:macos
+
+        - cmd: |
+            echo ""
+            echo "Installing shell completions..."
+        - ref: install packages:completions
+
+        - cmd: |
+            echo ""
+            echo "Setting up Git configuration..."
+        - ref: setup dotfiles:git
+
+        - cmd: |
+            echo ""
+            echo "Setting up dotfiles..."
+        - ref: apply dotfiles:dotfiles
+
+        - cmd: |
+            echo ""
+            echo "[DONE] macOS setup complete"
+
+  - verb: install
+    name: xcode
+    description: Install Xcode Command Line Tools for macOS
+    exec:
+      cmd: |
+        if xcode-select --install 2>&1 | grep installed; then
+          echo "Xcode Command Line Tools are already installed"
+        else
+          echo "Installing Xcode Command Line Tools..."
+          xcode-select --install
+        fi
+
+
+  - verb: setup
+    name: devmode
+    description: Enable Mac developer mode
+    exec:
+      cmd: |
+        echo "Enabling developer mode"
+        sudo /usr/sbin/DevToolsSecurity -enable

@@ -38,7 +38,7 @@ source $ZSH/oh-my-zsh.sh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 ### For thefuck plugin which handles shell command corrections
-eval $(thefuck --alias fix)
+command -v thefuck >/dev/null && eval $(thefuck --alias fix)
 
 ### Fixes slowness of pastes with zsh-syntax-highlighting.zsh
 pasteinit() {
@@ -89,11 +89,14 @@ alias path='echo -e ${PATH//:/\\n}'
 
 # -- Environment Variables --
 
-{{ if eq .chezmoi.os "darwin" -}}
-### GoLand IDE for macos
-export GOLAND_HOME="/Applications/GoLand.app/Contents/MacOS"
-export PATH="$PATH:$GOLAND_HOME"
-{{- end }}
+# IDE (macOS)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Goland
+  export GOLAND_HOME="/Applications/GoLand.app/Contents/MacOS"
+  export PATH="$PATH:$GOLAND_HOME"
+  # Windsurf
+  export PATH="$HOME/.codeium/windsurf/bin:$PATH"
+fi
 
 ### Go and GVM
 alias gvm="$GOPATH/bin/g"
@@ -109,7 +112,7 @@ fi
 ADD_KUBECONFIG_FILES="$HOME/.kube/configs"
 OIFS="$IFS"
 IFS=$'\n'
-for kubeconfigFile in `find "${ADD_KUBECONFIG_FILES}" -type f -name "*.yml" -o -name "*.yaml"`
+for kubeconfigFile in `find "${ADD_KUBECONFIG_FILES}" -type f -name "*.yml" -o -name "*.yaml" 2>/dev/null`
 do
     export KUBECONFIG="$kubeconfigFile:$KUBECONFIG"
 done
