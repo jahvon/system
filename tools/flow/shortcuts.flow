@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+namespace: flow
+visibility: public
+description: flow shortcut executables.
+tags: [flow, cli, shortcut, tools]
+executables:
+- verb: open
+  name: config
+  description: Open the flow configuration file in the default editor
+  launch:
+    app: Visual Studio Code
+    uri: $FLOW_CONFIG_PATH
+
+- verb: open
+  name: cache
+  description: Open the flow cache directory in the default file manager
+  launch:
+    uri: $FLOW_CACHE_PATH
+
+- verb: open
+  name: docs
+  description: Open flow documentation in browser
+  launch:
+    uri: "https://flowexec.io"
+
+- verb: open
+  name: github
+  description: Open flowexec/flow GitHub repository
+  launch:
+    uri: "https://github.com/flowexec/flow"

@@ -1,0 +1,37 @@
+data:
+  - key: Name
+    prompt: Module name
+    default: template
+artifacts:
+  - go.mod
+  - main.go
+
+visibility: private
+tags: [go]
+description:
+executables:
+  - verb: build
+    name: "{{ .Name }}"
+    description: Build the {{ .Name }} Go module
+    exec:
+      args:
+        - envKey: BINPATH
+          pos: 1
+          default: "./bin/{{ .Name }}"
+      cmd: |
+        go build -o "$BINPATH" main.go
+        echo "Build successful. Run ./$BINPATH to execute the module."
+
+  - verb: run
+    name: "{{ .Name }}"
+    description: Run the {{ .Name }} Go module
+    exec:
+      cmd: |
+        go run .
+
+  - verb: debug
+    name: "{{ .Name }}"
+    description: Debug the {{ .Name }} Go module
+    exec:
+      cmd: |
+        dlv debug .

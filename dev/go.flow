@@ -1,0 +1,11 @@
+visibility: public
+namespace: go
+tags: [go, development]
+fromFile:
+  - install-go-tools.sh
+
+executables:
+  - verb: build
+    name: module
+    exec:
+      cmd: go build ./...

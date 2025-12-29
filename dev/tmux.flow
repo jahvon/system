@@ -1,0 +1,238 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+namespace: tmux
+description: |
+  Tmux session and window management utilities.
+
+  Create, manage, and interact with tmux sessions for better
+  terminal workflow organization.
+
+tags: [terminal, tmux, session, workflow]
+
+executables:
+  - verb: get
+    name: sessions
+    aliases: [list, ls]
+    description: |
+      List all tmux sessions with status information.
+
+      Shows active sessions, window counts, and attached status.
+    exec:
+      cmd: |
+        if ! command -v tmux >/dev/null 2>&1; then
+          echo "❌ tmux is not installed"
+          exit 1
+        fi
+
+        if ! tmux list-sessions 2>/dev/null; then
+          echo "📋 No tmux sessions running"
+        else
+          echo "🖥️  Active tmux sessions:"
+          tmux list-sessions -F "   #{session_name}: #{session_windows} windows #{?session_attached,(attached),(detached)}"
+        fi
+
+  - verb: create
+    name: session
+    aliases: [new]
+    description: |
+      Create a new tmux session with optional name and directory.
+
+      Creates and optionally attaches to a new session.
+    exec:
+      params:
+        - prompt: "Session name (default: auto-generated):"
+          envKey: SESSION_NAME
+        - prompt: "Working directory (default: current):"
+          envKey: WORK_DIR
+          default: "."
+        - prompt: "Attach immediately? (y/n)"
+          envKey: ATTACH
+          default: "y"
+      cmd: |
+        SESSION_NAME=${SESSION_NAME:-"flow-$(date +%s)"}
+        WORK_DIR=$(realpath "${WORK_DIR}")
+
+        if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+          echo "❌ Session '$SESSION_NAME' already exists"
+          exit 1
+        fi
+
+        echo "🆕 Creating session '$SESSION_NAME' in $WORK_DIR"
+
+        if [ "$ATTACH" = "y" ] || [ "$ATTACH" = "yes" ]; then
+          tmux new-session -s "$SESSION_NAME" -c "$WORK_DIR"
+        else
+          tmux new-session -d -s "$SESSION_NAME" -c "$WORK_DIR"
+          echo "✅ Session '$SESSION_NAME' created (detached)"
+          echo "   Attach with: tmux attach -t $SESSION_NAME"
+        fi
+
+  - verb: new
+    name: session
+    aliases: [connect, resume]
+    description: |
+      Attach to an existing tmux session.
+
+      Lists available sessions if none specified.
+    exec:
+      args:
+        - pos: 1
+          envKey: SESSION_NAME
+          required: false
+      cmd: |
+        if [ -z "$SESSION_NAME" ]; then
+          echo "🖥️  Available sessions:"
+          if tmux list-sessions 2>/dev/null; then
+            echo
+            echo "Usage: flow attach tmux:session <session-name>"
+          else
+            echo "   No sessions running"
+            echo "   Create one with: flow create tmux:session"
+          fi
+        else
+          if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+            echo "🔗 Attaching to session '$SESSION_NAME'"
+            tmux attach-session -t "$SESSION_NAME"
+          else
+            echo "❌ Session '$SESSION_NAME' not found"
+            echo "Available sessions:"
+            tmux list-sessions 2>/dev/null || echo "   None"
+          fi
+        fi
+
+  - verb: kill
+    name: session
+    aliases: [destroy, remove]
+    description: |
+      Kill a tmux session.
+
+      Terminates the specified session and all its windows.
+    exec:
+      args:
+        - pos: 1
+          envKey: SESSION_NAME
+          required: true
+      cmd: |
+        if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+          tmux kill-session -t "$SESSION_NAME"
+          echo "🗑️  Session '$SESSION_NAME' terminated"
+        else
+          echo "❌ Session '$SESSION_NAME' not found"
+          echo "Available sessions:"
+          tmux list-sessions 2>/dev/null || echo "   None"
+        fi
+
+  - verb: create
+    name: dev-session
+    description: |
+      Create a development session with common windows.
+
+      Sets up a session with editor, terminal, and monitoring windows.
+    exec:
+      params:
+        - prompt: "Project name:"
+          envKey: PROJECT_NAME
+        - prompt: "Project directory:"
+          envKey: PROJECT_DIR
+          default: "."
+      cmd: |
+        PROJECT_DIR=$(realpath "${PROJECT_DIR}")
+        SESSION_NAME="dev-${PROJECT_NAME}"
+
+        if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+          echo "❌ Session '$SESSION_NAME' already exists"
+          echo "   Attach with: flow attach tmux:session $SESSION_NAME"
+          exit 1
+        fi
+
+        echo "🚀 Creating development session '$SESSION_NAME'"
+
+        # Create session with first window (editor)
+        tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_DIR" -n "editor"
+
+        # Add terminal window
+        tmux new-window -t "$SESSION_NAME" -n "terminal" -c "$PROJECT_DIR"
+
+        # Add monitoring window
+        tmux new-window -t "$SESSION_NAME" -n "monitor" -c "$PROJECT_DIR"
+
+        # Select the editor window
+        tmux select-window -t "$SESSION_NAME:editor"
+
+        echo "✅ Development session created with windows:"
+        echo "   - editor   (main development)"
+        echo "   - terminal (commands and tools)"
+        echo "   - monitor  (logs, processes, etc.)"
+        echo
+        echo "🔗 Attach with: tmux attach -t $SESSION_NAME"
+
+  - verb: run
+    name: command
+    aliases: [exec]
+    description: |
+      Run a command in a specific tmux session window.
+
+      Executes commands in tmux sessions without attaching.
+    exec:
+      params:
+        - prompt: "Session name:"
+          envKey: SESSION_NAME
+        - prompt: "Window name (default: current):"
+          envKey: WINDOW_NAME
+        - prompt: "Command to run:"
+          envKey: COMMAND
+      cmd: |
+        if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+          echo "❌ Session '$SESSION_NAME' not found"
+          exit 1
+        fi
+
+        if [ -n "$WINDOW_NAME" ]; then
+          TARGET="$SESSION_NAME:$WINDOW_NAME"
+        else
+          TARGET="$SESSION_NAME"
+        fi
+
+        echo "⚡ Running '$COMMAND' in $TARGET"
+        tmux send-keys -t "$TARGET" "$COMMAND" Enter
+
+  - verb: get
+    name: windows
+    description: |
+      List windows in a tmux session.
+
+      Shows all windows with their status and current programs.
+    exec:
+      args:
+        - pos: 1
+          envKey: SESSION_NAME
+          required: true
+      cmd: |
+        if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+          echo "❌ Session '$SESSION_NAME' not found"
+          exit 1
+        fi
+
+        echo "🪟 Windows in session '$SESSION_NAME':"
+        tmux list-windows -t "$SESSION_NAME" -F "   #{window_index}: #{window_name} #{?window_active,(active),} - #{pane_current_command}"
+
+  - verb: clean
+    name: all
+    description: |
+      Kill all tmux sessions.
+
+      Terminates all running tmux sessions (use with caution).
+    exec:
+      cmd: |
+        if ! tmux list-sessions 2>/dev/null; then
+          echo "📋 No tmux sessions to clean"
+        else
+          echo "⚠️  This will kill ALL tmux sessions. Continue? (y/N)"
+          read -r confirm
+          if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
+            tmux kill-server
+            echo "🧹 All tmux sessions terminated"
+          else
+            echo "❌ Cancelled"
+          fi
+        fi

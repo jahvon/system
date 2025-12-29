@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+namespace: flow
+visibility: public
+description: flow management and maintenance utilities.
+tags: [flow, cli, maintenance, tools]
+executables:
+  - verb: update
+    name: cli
+    description: Install flow workspace and sync configurations
+    exec:
+      cmd: |
+        set -e
+        if (command -v flow > /dev/null); then echo "Upgrading flow..."; else echo "Installing flow..."; fi
+        curl -sSL https://raw.githubusercontent.com/flowexec/flow/main/scripts/install.sh | bash
+
+        echo "Updating flow zsh autocompletion..."
+        flow completion zsh > ~/.oh-my-zsh/completions/_flow
+
+  - verb: apply
+    name: config
+    description: Apply flow preferred configuration
+    exec:
+      cmd: |
+        set -e
+        flow config set namespace ""
+        flow config set log-mode logfmt
+        flow config set theme default
+        flow config set workspace-mode dynamic
+        flow config set notifications false
+
+  - verb: bundle
+    name: config
+    description: Creates a timestamped backup of the flow config.
+    exec:
+      params:
+        - prompt: "Backup directory (default: ~/flow-backups):"
+          envKey: BACKUP_DIR
+      cmd: |
+        set -e 
+        BACKUP_DIR="${BACKUP_DIR:-$HOME/flow-backups}"
+        mkdir -p "$BACKUP_DIR"
+        backup_file="$BACKUP_DIR/flow-config-$(date +%Y%m%d-%H%M%S).tar.gz"
+        
+        echo "📦 Creating backup..."
+        
+        if [ -d "$HOME/.config/flow" ]; then
+          tar -czf "$backup_file" -C "$HOME/.config" flow
+        elif [ -d "$HOME/Library/Application Support/flow" ]; then
+          tar -czf "$backup_file" -C "$HOME/Library/Application Support" flow
+        else
+          echo "❌ Could not find flow config directory"
+          exit 1
+        fi
+        
+        echo "✅ Backup created: $backup_file"
+
+  - verb: bundle
+    name: vaults
+    description: Creates a timestamped backup of the flow vaults.
+    exec:
+      params:
+        - prompt: "Backup directory (default: ~/flow-backups):"
+          envKey: BACKUP_DIR
+          default: "$HOME/flow-backups"
+      cmd: |
+        set -e 
+        BACKUP_DIR="${BACKUP_DIR:-$HOME/flow-backups}"
+        mkdir -p "$BACKUP_DIR"
+        backup_file="$BACKUP_DIR/flow-vaults-$(date +%Y%m%d-%H%M%S).tar.gz"
+        
+        echo "📦 Creating backup..."
+        
+        if [ -d "$HOME/.cache/flow/vaults" ]; then
+          tar -czf "$backup_file" -C "$HOME/.cache/flow" vaults
+        elif [ -d "$HOME/Library/Caches/flow/vaults" ]; then
+          tar -czf "$backup_file" -C "$HOME/Library/Caches/flow" vaults
+        else
+          echo "❌ Could not find flow vault directory"
+          exit 1
+        fi
+        
+        echo "✅ Backup created: $backup_file"
+
+
+  - verb: show
+    name: info
+    description: |
+      Display Flow CLI information and system status.
+      
+      Shows version, config location, workspaces, and basic diagnostics.
+    exec:
+      cmd: |
+        echo "🔧 Flow CLI Information"
+        echo "======================"
+        echo
+        
+        echo "Version:"
+        flow --version
+        echo
+        
+        echo "Configuration:"
+        if [ -d "$HOME/.config/flow" ]; then
+          echo "   Location: $HOME/.config/flow"
+        elif [ -d "$HOME/Library/Application Support/flow" ]; then
+          echo "   Location: $HOME/Library/Application Support/flow"
+        fi
+        echo
+        
+        echo "Current Context:"
+        echo "   Workspace: $(flow workspace get -o json | jq -r .name || echo 'unknown')"
+        echo "   Namespace: $(flow config get -o json | jq -r .namespace || echo 'unknown')"
+        echo
+        
+        echo "Registered Workspaces:"
+        flow workspace list --output json 2>/dev/null | grep -o '"displayName": "[^"]*' | cut -d'"' -f4 | sed 's/^/   - /' || echo "   None found"
+        echo
+        
+        echo "⚡ Available Executables:"
+        total=$(flow browse --list --all --output json 2>/dev/null | jq '.executables[].name' | wc -l)
+        echo "   Total: $total"

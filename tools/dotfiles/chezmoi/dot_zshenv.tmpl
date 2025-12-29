@@ -1,0 +1,27 @@
+{{ if eq .chezmoi.os "darwin" -}}
+export CACHE_ROOT="$HOME/Library/Caches"
+{{ else if eq .chezmoi.os "linux" -}}
+CACHE_HOME=$XDG_CONFIG_HOME
+if [[ -z $CACHE_HOME ]]; then CACHE_HOME=$HOME; fi
+export CACHE_ROOT="$CACHE_HOME/.cache"
+{{ end -}}
+
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export EDITOR='nvim'
+export VISUAL='nvim'
+
+export WORKSPACES="$HOME/workspaces"
+export GITHUB="$WORKSPACES/github.com"
+export JAHVON="$WORKSPACES/github.com/jahvon"
+export FLOWEXEC="$WORKSPACES/github.com/flowexec"
+export SANDBOX="$WORKSPACES/sandbox"
+export TOOLS="$WORKSPACES/tools"
+export DOWNLOADS="$HOME/Downloads"
+
+export OBSIDIAN_VAULT="$HOME/Documents/Knowledge\ Library"
+
+[[ -f ~/.flowkey ]] && export FLOW_VAULT_KEY=$(cat ~/.flowkey)
+
+# Local config
+[[ -f ~/.zshenv.local ]] && source ~/.zshenv.local

@@ -1,0 +1,6 @@
+visibility: public
+executables:
+  - verb: show
+    name: nameservers
+    exec:
+      cmd: scutil --dns | grep 'nameserver\[[0-9]*\]'

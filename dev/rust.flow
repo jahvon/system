@@ -1,0 +1,9 @@
+visibility: public
+namespace: rust
+tags: [rust, development]
+
+executables:
+  - verb: install
+    name: rust
+    exec:
+      cmd: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y

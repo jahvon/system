@@ -1,0 +1,287 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+description: Obsidian note management executables for working with markdown files the Knowledge Library vault.
+tags: [obsidian, markdown, notes]
+
+executables:
+  - verb: open
+    name: obsidian
+    launch:
+      app: obsidian
+      uri: ~/Documents/Knowledge Library
+
+  - verb: list
+    name: notes
+    description: List all markdown notes in the Knowledge Library vault
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      cmd: |
+        find . -type f -name '*.md' | sort
+
+  - verb: get
+    name: notes
+    description: Case-insensitive search for a string in all notes
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      params:
+        - envKey: QUERY
+          prompt: Search query
+      cmd: |
+        find . -type f -name '*.md' -exec grep -i --color=always -n -H "$QUERY" {} + || echo 'No matches found.'
+
+  - verb: show
+    name: note-outline
+    description: Show markdown heading outline for a note
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      params:
+        - envKey: NOTE
+          prompt: Note filename (with or without .md)
+      cmd: |
+        FILE="${NOTE%.md}.md"
+        if [ -f "$FILE" ]; then
+          grep -En '^#{1,6} ' "$FILE" || echo "No headings found."
+        else
+          echo "Note $FILE not found."
+        fi
+
+  - verb: show
+    name: backlinks
+    description: List notes that link to a given note
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      params:
+        - envKey: NOTE
+          prompt: Note filename (with or without .md, no path)
+      cmd: |
+        BASENAME="${NOTE%.md}"
+        find . -type f -name '*.md' -exec grep -l "\[\[${BASENAME}\]\]" {} + | grep -v "/${BASENAME}.md$" || echo "No backlinks found."
+
+  - verb: get
+    name: note-tags
+    description: Extract unique tags (e.g., \#tag) from all notes
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      cmd: |
+        find . -type f -name '*.md' -exec grep -ho '#[[:alnum:]_-]*' {} + | sort | uniq
+
+  - verb: get
+    name: note-links
+    description: List all wiki links ([[Link]]) in all notes
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      cmd: |
+        find . -type f -name '*.md' -exec grep -ho '\[\[[^]]*\]\]' {} + | sort | uniq
+
+  - verb: create
+    name: daily
+    description: Create today's daily note (yyyy-mm-dd.md) if missing, then open in $EDITOR or print path
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      cmd: |
+        FILE="$(date +%F).md"
+        if [ ! -f "$FILE" ]; then
+          echo -e "# $(date +%A, %B %d, %Y)\n\n## Tasks\n\n## Notes\n\n## Reflections\n\n" > "$FILE"
+        fi
+        if [ -n "$EDITOR" ]; then
+          "$EDITOR" "$FILE"
+        else
+          echo "Created or found: $FILE"
+        fi
+
+  - verb: open
+    name: note
+    description: Open a note in $EDITOR or display its contents
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      params:
+        - envKey: NOTE
+          prompt: Note filename (with or without .md)
+      cmd: |
+        FILE="${NOTE%.md}.md"
+        if [ -f "$FILE" ] && [ -n "$EDITOR" ]; then
+          "$EDITOR" "$FILE"
+        elif [ -f "$FILE" ]; then
+          cat "$FILE"
+        else
+          echo "Note $FILE not found."
+        fi
+
+  - verb: create
+    name: note
+    description: Create a new note with basic template
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      params:
+        - envKey: TITLE
+          prompt: Note title
+        - envKey: TAGS
+          prompt: Tags (space-separated, optional)
+          default: ""
+      cmd: |
+        FILE="${TITLE// /-}.md"
+        FILE="$(echo "$FILE" | tr '[:upper:]' '[:lower:]')"
+        
+        if [ -f "$FILE" ]; then
+          echo "Note $FILE already exists!"
+          exit 1
+        fi
+        
+        {
+          echo "# $TITLE"
+          echo ""
+          echo "Created: $(date '+%Y-%m-%d %H:%M')"
+          if [ -n "$TAGS" ]; then
+            echo "Tags: $(echo "$TAGS" | sed 's/\b\w/\#&/g')"
+          fi
+          echo ""
+          echo "## Overview"
+          echo ""
+          echo "## Notes"
+          echo ""
+          echo "## Links"
+          echo ""
+        } > "$FILE"
+        
+        echo "Created: $FILE"
+        if [ -n "$EDITOR" ]; then
+          "$EDITOR" "$FILE"
+        fi
+
+  - verb: get
+    name: orphans
+    description: Find orphaned notes (notes with no incoming or outgoing links)
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      cmd: |
+        echo "Finding orphaned notes..."
+        echo ""
+        
+        # Find all markdown files
+        all_notes=$(find . -type f -name '*.md' | sed 's|^\./||' | sed 's|\.md$||')
+        
+        # Find notes with outgoing links
+        notes_with_outgoing=$(find . -type f -name '*.md' -exec grep -l '\[\[.*\]\]' {} + | sed 's|^\./||' | sed 's|\.md$||' | sort | uniq)
+        
+        # Find notes with incoming links
+        notes_with_incoming=""
+        for note in $all_notes; do
+          if find . -type f -name '*.md' -exec grep -l "\[\[${note}\]\]" {} + | grep -q .; then
+            notes_with_incoming="$notes_with_incoming\n$note"
+          fi
+        done
+        notes_with_incoming=$(echo -e "$notes_with_incoming" | sort | uniq | grep -v '^$')
+        
+        # Find orphans (notes with neither incoming nor outgoing links)
+        orphans=""
+        for note in $all_notes; do
+          has_outgoing=$(echo "$notes_with_outgoing" | grep -x "$note" || true)
+          has_incoming=$(echo "$notes_with_incoming" | grep -x "$note" || true)
+          
+          if [ -z "$has_outgoing" ] && [ -z "$has_incoming" ]; then
+            orphans="$orphans\n$note.md"
+          fi
+        done
+        
+        if [ -n "$orphans" ]; then
+          echo "Orphaned notes:"
+          echo -e "$orphans" | grep -v '^$' | sort
+        else
+          echo "No orphaned notes found."
+        fi
+
+  - verb: show
+    name: graph
+    description: Show basic graph analysis of note connections
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      cmd: |
+        echo "=== Obsidian Vault Graph Analysis ==="
+        echo ""
+        
+        total_notes=$(find . -type f -name '*.md' | wc -l | tr -d ' ')
+        echo "Total notes: $total_notes"
+        
+        total_links=$(find . -type f -name '*.md' -exec grep -ho '\[\[.*\]\]' {} + | wc -l | tr -d ' ')
+        echo "Total wiki links: $total_links"
+        
+        notes_with_links=$(find . -type f -name '*.md' -exec grep -l '\[\[.*\]\]' {} + | wc -l | tr -d ' ')
+        echo "Notes with outgoing links: $notes_with_links"
+        
+        unique_targets=$(find . -type f -name '*.md' -exec grep -ho '\[\[.*\]\]' {} + | sort | uniq | wc -l | tr -d ' ')
+        echo "Unique link targets: $unique_targets"
+        
+        echo ""
+        echo "=== Most Referenced Notes ==="
+        find . -type f -name '*.md' -exec grep -ho '\[\[.*\]\]' {} + | sed 's/\[\[//g' | sed 's/\]\]//g' | sort | uniq -c | sort -nr | head -10
+        
+        echo ""
+        echo "=== Notes with Most Outgoing Links ==="
+        for file in $(find . -type f -name '*.md'); do
+          count=$(grep -o '\[\[.*\]\]' "$file" | wc -l | tr -d ' ')
+          if [ "$count" -gt 0 ]; then
+            basename=$(basename "$file" .md)
+            echo "$count $basename"
+          fi
+        done | sort -nr | head -10
+
+  - verb: backup
+    name: vault
+    description: Backup vault to git repository (initialize if needed)
+    exec:
+      dir: ~/Documents/Knowledge Library
+      logMode: text
+      cmd: |
+        echo "Backing up Obsidian vault..."
+        
+        # Initialize git if not already initialized
+        if [ ! -d ".git" ]; then
+          echo "Initializing git repository..."
+          git init
+          
+          # Create .gitignore for Obsidian
+          echo ".obsidian/workspace*" > .gitignore
+          echo ".obsidian/app.json" >> .gitignore
+          echo ".obsidian/appearance.json" >> .gitignore
+          echo ".obsidian/hotkeys.json" >> .gitignore
+          echo ".obsidian/core-plugins.json" >> .gitignore
+          echo ".obsidian/community-plugins.json" >> .gitignore
+          echo ".obsidian/plugins/*/" >> .gitignore
+          echo ".trash/" >> .gitignore
+          echo ".DS_Store" >> .gitignore
+          echo "Thumbs.db" >> .gitignore
+          git add .gitignore
+        fi
+        
+        # Add all markdown files and Obsidian config (but respect .gitignore)
+        git add .
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit."
+        else
+          # Commit with timestamp
+          git commit -m "Vault backup: $(date '+%Y-%m-%d %H:%M:%S')"
+          echo "Changes committed successfully."
+          
+          # Show what was committed
+          echo ""
+          echo "Files in this backup:"
+          git diff --name-only HEAD~1 HEAD
+        fi
+        
+        echo ""
+        echo "Backup complete. To push to remote:"
+        echo "  git remote add origin <your-repo-url>  # if not already added"
+        echo "  git push -u origin main"

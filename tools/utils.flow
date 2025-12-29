@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+visibility: public
+executables:
+  - verb: generate
+    name: password
+    description: |
+      Generate secure passwords with customizable length
+
+      **Usage:** `flow generate password` or `flow generate password 20`
+    exec:
+      args:
+        - pos: 1
+          envKey: LENGTH
+          default: "16"
+      cmd: |
+        if command -v openssl >/dev/null 2>&1; then
+          echo "🔐 Generated password (length: $LENGTH):"
+          openssl rand -base64 $((LENGTH * 3 / 4)) | head -c $LENGTH
+          echo
+        else
+          echo "🔐 Generated password (length: $LENGTH):"
+          head /dev/urandom | tr -dc A-Za-z0-9 | head -c $LENGTH
+          echo
+        fi
+
+  - verb: check
+    name: weather
+    aliases: [forecast]
+    description: |
+      Get current weather information
+
+      **Usage:** `flow check weather` or `flow check weather "Boston"`
+    exec:
+      args:
+        - pos: 1
+          envKey: LOCATION
+          default: "Lynn"
+      cmd: |
+        echo "🌤️  Weather for: $LOCATION"
+        echo "========================="
+
+        if command -v curl >/dev/null 2>&1; then
+            curl -s "wttr.in/$LOCATION?format=3"
+            echo ""
+            echo "📊 Detailed forecast:"
+            curl -s "wttr.in/$LOCATION?0&q&T" | head -7
+        else
+            echo "❌ curl not found. Install curl to get weather data."
+        fi

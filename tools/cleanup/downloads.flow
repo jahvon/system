@@ -1,0 +1,6 @@
+visibility: public
+executables:
+  - verb: clean
+    name: downloads
+    exec:
+      file: downloads.sh

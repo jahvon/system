@@ -1,4 +1,0 @@
-visibility: public
-tags: [cli]
-fromFile:
-  - install-autocompletions.sh

@@ -1,0 +1,34 @@
+visibility: public
+namespace: gitea
+tags: [git, gitea, k8s]
+executables:
+  - verb: login
+    name: registry
+    description: Login to Gitea container registry
+    exec:
+      params:
+        - envKey: GITEA_TOKEN
+          secretRef: gitea-access-token
+      args:
+        - envKey: GITEA_HOST
+          default: git.malik.haus
+          flag: host
+        - envKey: GITEA_USERNAME
+          default: jahvon
+          pos: 1
+        - envKey: BUILDER
+          default: podman
+          flag: builder
+      cmd: |
+        echo "Logging into Gitea container registry at ${GITEA_HOST}..."
+
+        # Login to the container registry using the personal access token
+        echo "${GITEA_TOKEN}" | $BUILDER login "${GITEA_HOST}" --username "${GITEA_USERNAME}" --password-stdin
+
+        if [ $? -eq 0 ]; then
+          echo "✅ Successfully logged into ${GITEA_HOST} container registry"
+          echo "💡 You can now push/pull container images to/from ${GITEA_HOST}"
+        else
+          echo "❌ Failed to login to container registry"
+          exit 1
+        fi

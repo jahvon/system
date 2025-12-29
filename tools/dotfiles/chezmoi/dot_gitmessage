@@ -1,0 +1,21 @@
+# <task id>: (<type>) <50 character subject line>
+# |<----  Using a Maximum Of 50 Characters  ---->|
+
+# <body: describe what changed, why, and any side effects>
+# |<----       Limit Each Line to a Maximum Of 72 Characters      ---->|
+
+# --- COMMIT END ---
+# Task ID could be an issue id/number from JIRA or GitHub, etc.
+#
+# Type can be
+#   feat     (new feature)
+#   fix      (bug fix)
+#   refactor (improve code without new functionality)
+#   style    (white spaces, formatting, linting fixes, etc.)
+#   docs     (changes to documentation)
+#   test     (adding or refactoring tests)
+#   ci       (changes to CI configurations and scripts)
+#   chore    (dependency updates and misc maintenance changes)
+#   wip      (work in progress commit -- these should be squashed before merging)
+#
+# Include ! after the type to indicate a breaking change
