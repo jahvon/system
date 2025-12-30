@@ -60,6 +60,7 @@ executables:
     name: gitignore
     description: Install global .gitignore_global
     exec:
+      dir: .
       cmd: |
         echo "Installing .gitignore_global..."
         cp templates/gitignore_global $HOME/.gitignore_global
@@ -69,6 +70,7 @@ executables:
     name: gitmessage
     description: Install .gitmessage commit template
     exec:
+      dir: .
       cmd: |
         echo "Installing .gitmessage..."
         cp templates/gitmessage $HOME/.gitmessage
@@ -78,11 +80,13 @@ executables:
     name: zsh-config
     description: Install .zshrc, .zshenv, and .zprofile (platform-aware)
     exec:
+      dir: .
       cmd: |
+        #!/bin/bash
         echo "Installing zsh configuration files..."
 
         # Detect OS and use appropriate zshrc
-        if [[ "$OSTYPE" == "darwin"* ]]; then
+        if [ "$(uname)" = "Darwin" ]; then
           echo "Using macOS zshrc..."
           cp templates/zshrc $HOME/.zshrc
         else
