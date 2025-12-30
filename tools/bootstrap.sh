@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # f:verb=run f:name=system-bootstrap
 # <f|description>
@@ -9,9 +9,9 @@ set -e
 
 # Detect OS
 OS_TYPE="unknown"
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [ "$(uname)" = "Darwin" ]; then
   OS_TYPE="macos"
-elif [[ "$OSTYPE" == "linux"* ]]; then
+elif [ "$(uname)" = "Linux" ]; then
   OS_TYPE="ubuntu"
 fi
 

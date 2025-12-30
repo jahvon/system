@@ -17,14 +17,13 @@ executables:
       4. Applies dotfiles configuration
     exec:
       cmd: |
-        #!/bin/bash
         set -e
 
         # Detect OS
         OS_TYPE="unknown"
-        if [[ "$OSTYPE" == "darwin"* ]]; then
+        if [ "$(uname)" = "Darwin" ]; then
           OS_TYPE="macos"
-        elif [[ "$OSTYPE" == "linux"* ]]; then
+        elif [ "$(uname)" = "Linux" ]; then
           OS_TYPE="ubuntu"
         fi
 
