@@ -57,27 +57,6 @@ executables:
   # -- Individual Dotfile Installers --
 
   - verb: install
-    name: gitconfig
-    description: Install .gitconfig with user information
-    exec:
-      params:
-        - envKey: GIT_USER_NAME
-          prompt: "Git user name"
-        - envKey: GIT_USER_EMAIL
-          prompt: "Git email address"
-        - envKey: GITHUB_USER
-          prompt: "GitHub username"
-      cmd: |
-        echo "Installing .gitconfig..."
-        TEMPLATE_FILE="templates/gitconfig"
-        envsubst < $TEMPLATE_FILE > $HOME/.gitconfig
-
-        # Create local override file if it doesn't exist
-        touch $HOME/.gitconfig.local
-
-        echo "[DONE] .gitconfig installed"
-
-  - verb: install
     name: gitignore
     description: Install global .gitignore_global
     exec:
@@ -139,8 +118,6 @@ executables:
         - cmd: echo "Setting up dotfiles with Flow..."
 
         - ref: install dotfiles:oh-my-zsh
-
-        - ref: install dotfiles:gitconfig
 
         - ref: install dotfiles:gitignore
 
