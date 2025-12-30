@@ -47,6 +47,7 @@ if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
   # We're in a git repo, get the root
   REPO_PATH=$(git rev-parse --show-toplevel)
   echo "Using existing repository at: $REPO_PATH"
+  git pull || true
 else
   # Not in a repo, clone it
   REPO_PATH="$HOME/workspaces/github.com/jahvon/system"
