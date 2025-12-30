@@ -23,13 +23,8 @@ executables:
         OS_TYPE="unknown"
         if [[ "$OSTYPE" == "darwin"* ]]; then
           OS_TYPE="macos"
-        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-          if [ -f /etc/os-release ]; then
-            . /etc/os-release
-            if [[ "$ID" == "ubuntu" ]]; then
-              OS_TYPE="ubuntu"
-            fi
-          fi
+        elif [[ "$OSTYPE" == "linux"* ]]; then
+          OS_TYPE="ubuntu"
         fi
 
         echo "Starting System Bootstrap"
