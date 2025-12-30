@@ -17,6 +17,7 @@ executables:
       4. Applies dotfiles configuration
     exec:
       cmd: |
+        #!/bin/bash
         set -e
 
         # Detect OS
