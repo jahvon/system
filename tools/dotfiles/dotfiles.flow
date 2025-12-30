@@ -60,7 +60,7 @@ executables:
     name: gitignore
     description: Install global .gitignore_global
     exec:
-      dir: .
+      dir: //tools/dotfiles
       cmd: |
         echo "Installing .gitignore_global..."
         cp templates/gitignore_global $HOME/.gitignore_global
@@ -70,7 +70,7 @@ executables:
     name: gitmessage
     description: Install .gitmessage commit template
     exec:
-      dir: .
+      dir: //tools/dotfiles
       cmd: |
         echo "Installing .gitmessage..."
         cp templates/gitmessage $HOME/.gitmessage
@@ -80,7 +80,7 @@ executables:
     name: zsh-config
     description: Install .zshrc, .zshenv, and .zprofile (platform-aware)
     exec:
-      dir: .
+      dir: //tools/dotfiles
       cmd: |
         #!/bin/bash
         echo "Installing zsh configuration files..."
