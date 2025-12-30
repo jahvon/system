@@ -67,7 +67,7 @@ echo ""
 echo "Initalizing workspace..."
 cd "$REPO_PATH"
 flow workspace init main "$REPO_PATH" || true
-flow sync -x
+flow sync
 
 echo ""
 echo "Bootstrapping..."

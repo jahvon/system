@@ -45,9 +45,9 @@ executables:
 
         # Run platform-specific bootstrap
         if [ "$OS_TYPE" = "macos" ]; then
-          flow run bootstrap:macos -x
+          flow run bootstrap:macos
         elif [ "$OS_TYPE" = "ubuntu" ]; then
-          flow run bootstrap:ubuntu -x
+          flow run bootstrap:ubuntu
         fi
 
         echo ""
