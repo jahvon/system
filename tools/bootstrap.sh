@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # f:verb=run f:name=system-bootstrap
 # <f|description>
