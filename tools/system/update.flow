@@ -25,6 +25,8 @@ executables:
           if: os == "linux"
 
         - ref: apply dotfiles:dotfiles
+        - ref: install preferences:iterm
+          if: os == "darwin"
         - cmd: mise upgrade --yes
         - ref: update flow:cli
         - cmd: |

@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: preferences
+tags: [preferences, macos, iterm]
+description: macOS app preferences
+
+executables:
+  - verb: install
+    name: iterm
+    description: |
+      Install the Everforest iTerm2 profiles (shell, flow library, k9s) as Dynamic Profiles.
+      iTerm reloads them live, so this is safe while iTerm is running.
+    exec:
+      dir: //tools/preferences/iterm
+      cmd: |
+        set -e
+        if [ "$(uname)" != "Darwin" ]; then
+          echo "iTerm profiles are macOS-only; skipping"
+          exit 0
+        fi
+        DEST="$HOME/Library/Application Support/iTerm2/DynamicProfiles"
+        mkdir -p "$DEST"
+        # A copy, not a symlink: iTerm only reloads when a real file in this directory changes
+        cp profiles.json "$DEST/system-everforest.json"
+        echo "[DONE] Installed $(jq '.Profiles | length' profiles.json) iTerm profiles to $DEST"

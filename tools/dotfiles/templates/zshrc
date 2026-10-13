@@ -98,6 +98,9 @@ hash -d notes="$OBSIDIAN_VAULT"
 # `cd <repo>` from anywhere for repos in these parents
 cdpath=(. "$FLOWEXEC" "$JAHVON" "$GITHUB/klipster-eng" "$WORKSPACES")
 
+# Everforest colors for fzf (ws picker, ctrl-r)
+export FZF_DEFAULT_OPTS="--color=bg:-1,bg+:#232A2E,fg:#D3C6AA,fg+:#D3C6AA,hl:#7FBBB3,hl+:#83C092,info:#DBBC7F,prompt:#D699B6,pointer:#D699B6,marker:#A7C080,spinner:#83C092,header:#7A8478,border:#3D484D"
+
 # ws [query]: jump to a repo by exact name, or pick one with fzf (no args lists every repo)
 # Listed in priority order: an exact name match picks the first hit (flowexec/flow over jahvon/flow)
 _ws_repos() {

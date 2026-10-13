@@ -16,6 +16,8 @@ Personal development environment and productivity tools managed with ([flow](htt
 - Dotfiles in `tools/dotfiles/templates/` are **symlinked** into `~`; edit them here. Machine-specific
   settings go in `~/.zshrc.local` / `~/.zshenv.local`
 - `devflow` / `devmochi` run the local dev builds from `$FLOWEXEC/flow` and `$FLOWEXEC/mochi`
+- Colors follow Everforest Dark on mochi's `#1A1E20` ground: iTerm profiles in
+  `tools/preferences/iterm/`, the p10k prompt, and fzf
 - Jump around with `cd <repo>` from anywhere, named dirs (`~mochi`, `~flow`, `~ico`, `~kube`,
   `~system`, `~notes`, `~ws`), or `ws [query]` to pick any repo with fzf
 
@@ -48,6 +50,7 @@ flow install packages:homebrew      # brew bundle from tools/packages/Brewfile
 flow run bootstrap:ubuntu-server    # Linux server setup from an existing checkout
 flow install rust                   # opt-in Rust toolchain via mise
 flow install claude:setup           # Claude Code + agent-framework (CLAUDE.md, settings, plugins)
+flow install preferences:iterm      # Everforest iTerm profiles (shell, flow library, k9s)
 
 # Go
 flow build go:module                # also test/lint go:module; run from the module directory
