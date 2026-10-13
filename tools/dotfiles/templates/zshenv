@@ -21,12 +21,14 @@ export DOWNLOADS="$HOME/Downloads"
 
 export OBSIDIAN_VAULT="$HOME/Documents/Knowledge Library"
 
-[[ -f ~/.flowkey ]] && export FLOW_VAULT_KEY=$(cat ~/.flowkey)
+[[ -f ~/.flowkey ]] && export FLOW_VAULT_KEY=$(<~/.flowkey)
+
+# Programming Languages (versions managed by mise; see ~/.config/mise/config.toml)
+export GOPATH="$HOME/go"
+export GOBIN="$GOPATH/bin"
+export MISE_NODE_COREPACK=true
+
+source ~/.zsh/path.zsh
 
 # Local config
 [[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
-
-# Programming Languages
-[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$VOLTA_HOME/bin:$PATH"

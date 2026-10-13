@@ -1,0 +1,9 @@
+# Global tool versions. Repos override with their own mise.toml / .tool-versions.
+# yarn and pnpm come from each repo's packageManager field via corepack (MISE_NODE_COREPACK in .zshenv).
+[tools]
+node = "22"
+go = "1.26"
+ruby = "3"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "ruby"]

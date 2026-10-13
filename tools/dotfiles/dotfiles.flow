@@ -3,57 +3,52 @@
 visibility: public
 namespace: dotfiles
 tags: [dotfiles, shell, zsh, git]
-description: Manage dotfiles and shell configuration without chezmoi
+description: Manage dotfiles and shell configuration
 
 imports:
   - git-setup.sh
 
 executables:
-  # -- ZSH and Oh-My-Zsh Setup --
+  # -- ZSH Setup --
 
   - verb: install
-    name: oh-my-zsh
-    description: Install Oh-My-Zsh and required plugins
+    name: zsh-plugins
+    description: Install powerlevel10k, zsh-autosuggestions, and zsh-syntax-highlighting
     exec:
       cmd: |
-        # Install Oh-My-Zsh
-        if [ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
-          rm -rf $HOME/.oh-my-zsh || true
-          echo "Installing Oh-My-Zsh..."
-          sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        set -e
+        if [ "$(uname)" = "Darwin" ]; then
+          brew install powerlevel10k zsh-autosuggestions zsh-syntax-highlighting
+          # compinit refuses group-writable fpath dirs, which Homebrew creates by default
+          chmod go-w "$(brew --prefix)/share" "$(brew --prefix)/share/zsh" "$(brew --prefix)/share/zsh/site-functions"
         else
-          echo "[OK] Oh-My-Zsh already installed"
+          mkdir -p "$HOME/.zsh/plugins"
+          for repo in romkatv/powerlevel10k zsh-users/zsh-autosuggestions zsh-users/zsh-syntax-highlighting; do
+            dir="$HOME/.zsh/plugins/${repo#*/}"
+            if [ -d "$dir" ]; then
+              git -C "$dir" pull --ff-only
+            else
+              git clone --depth=1 "https://github.com/$repo.git" "$dir"
+            fi
+          done
         fi
+        echo "[DONE] Zsh plugins installed"
 
-        # Install zsh-autosuggestions
-        ZSH_CUSTOM=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
-        if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
-          echo "Installing zsh-autosuggestions..."
-          git clone https://github.com/zsh-users/zsh-autosuggestions.git \
-            $ZSH_CUSTOM/plugins/zsh-autosuggestions
-        else
-          echo "[OK] zsh-autosuggestions already installed"
+  - verb: install
+    name: mise
+    description: Install mise and the global tool versions from ~/.config/mise/config.toml
+    exec:
+      cmd: |
+        set -e
+        if ! command -v mise > /dev/null; then
+          if [ "$(uname)" = "Darwin" ]; then
+            brew install mise
+          else
+            curl -fsSL https://mise.run | sh
+          fi
         fi
-
-        # Install zsh-syntax-highlighting
-        if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
-          echo "Installing zsh-syntax-highlighting..."
-          git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
-            $ZSH_CUSTOM/plugins/zsh-syntax-highlighting
-        else
-          echo "[OK] zsh-syntax-highlighting already installed"
-        fi
-
-        # Install Powerlevel10k theme
-        if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
-          echo "Installing Powerlevel10k theme..."
-          git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
-            $ZSH_CUSTOM/themes/powerlevel10k
-        else
-          echo "[OK] Powerlevel10k already installed"
-        fi
-
-        echo "[DONE] Oh-My-Zsh and plugins installed"
+        mise install
+        echo "[DONE] mise tools installed"
 
   # -- Individual Dotfile Installers --
 
@@ -79,34 +74,52 @@ executables:
 
   - verb: install
     name: zsh-config
-    description: Install .zshrc, .zshenv, and .zprofile (platform-aware)
+    description: |
+      Symlink .zshrc, .zshenv, .zprofile, .p10k.zsh, and the mise config to the templates in this repo.
+
+      Existing regular files are moved to ~/.dotfiles-backup/<timestamp>/ first. Because the files are
+      links, anything an installer appends shows up as a diff in this repo.
     exec:
       dir: //tools/dotfiles
       cmd: |
-        #!/bin/bash
-        echo "Installing zsh configuration files..."
+        set -e
+        TEMPLATES="$(pwd)/templates"
+        BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 
-        # Detect OS and use appropriate zshrc
-        if [ "$(uname)" = "Darwin" ]; then
-          echo "Using macOS zshrc..."
-          cp templates/zshrc $HOME/.zshrc
-        else
-          echo "Using Ubuntu/Linux zshrc..."
-          cp templates/zshrc-mini $HOME/.zshrc
+        link() {
+          src="$TEMPLATES/$1"
+          dest="$2"
+          mkdir -p "$(dirname "$dest")"
+          if [ -e "$dest" ] && [ ! -L "$dest" ]; then
+            mkdir -p "$BACKUP_DIR"
+            mv "$dest" "$BACKUP_DIR/"
+            echo "Backed up $dest"
+          fi
+          ln -sfn "$src" "$dest"
+          echo "Linked $dest -> $src"
+        }
+
+        link zshrc "$HOME/.zshrc"
+        link zshenv "$HOME/.zshenv"
+        link zprofile "$HOME/.zprofile"
+        link path.zsh "$HOME/.zsh/path.zsh"
+        link p10k.zsh "$HOME/.p10k.zsh"
+        link mise.toml "$HOME/.config/mise/config.toml"
+
+        # rvm was the only thing in .zlogin; mise manages ruby now
+        if [ -f "$HOME/.zlogin" ] && [ ! -L "$HOME/.zlogin" ]; then
+          mkdir -p "$BACKUP_DIR"
+          mv "$HOME/.zlogin" "$BACKUP_DIR/"
+          echo "Moved ~/.zlogin to $BACKUP_DIR"
         fi
 
-        cp templates/zshenv $HOME/.zshenv
-        cp templates/zprofile $HOME/.zprofile
-        cp templates/p10k.zsh $HOME/.p10k.zsh
+        mkdir -p "$HOME/.zsh/completions"
+        touch "$HOME/.zshrc.local" "$HOME/.zshenv.local"
 
-        # Create local override files if they don't exist
-        touch $HOME/.zshrc.local
-        touch $HOME/.zshenv.local
+        # Skips login(1)'s "Last login" system log scan on every new terminal
+        touch "$HOME/.hushlogin"
 
-        # Create hushlogin to suppress login messages
-        touch $HOME/.hushlogin
-
-        echo "[DONE] Zsh configuration installed"
+        echo "[DONE] Zsh configuration linked"
 
   # -- Main Apply Executables --
 
@@ -114,7 +127,7 @@ executables:
     name: dotfiles
     aliases: [setup-dotfiles]
     description: |
-      Apply all dotfiles - installs Oh-My-Zsh, plugins, and all dotfile configurations.
+      Apply all dotfiles - installs zsh plugins, mise tools, and all dotfile configurations.
 
       This is the main dotfile setup command for new systems.
     serial:
@@ -122,13 +135,15 @@ executables:
       execs:
         - cmd: echo "Setting up dotfiles with Flow..."
 
-        - ref: install dotfiles:oh-my-zsh
+        - ref: install dotfiles:zsh-plugins
 
         - ref: install dotfiles:gitignore
 
         - ref: install dotfiles:gitmessage
 
         - ref: install dotfiles:zsh-config
+
+        - ref: install dotfiles:mise
 
         - cmd: |
             echo ""
@@ -171,15 +186,8 @@ executables:
         echo "Main Configuration Files:"
         ls -lh ~/.gitconfig ~/.gitignore_global ~/.gitmessage 2>/dev/null || true
         echo ""
-        echo "Zsh Configuration:"
-        ls -lh ~/.zshrc ~/.zshenv ~/.zprofile ~/.p10k.zsh 2>/dev/null || true
+        echo "Linked Configuration (edit in this repo):"
+        ls -l ~/.zshrc ~/.zshenv ~/.zprofile ~/.zsh/path.zsh ~/.p10k.zsh ~/.config/mise/config.toml 2>/dev/null || true
         echo ""
         echo "Local Overrides (not managed by Flow):"
         ls -lh ~/.gitconfig.local ~/.zshrc.local ~/.zshenv.local 2>/dev/null || true
-        echo ""
-        echo "Oh-My-Zsh Installation:"
-        if [ -d "$HOME/.oh-my-zsh" ]; then
-          echo "  [OK] Installed at: $HOME/.oh-my-zsh"
-        else
-          echo "  [NOT FOUND] Not installed"
-        fi
