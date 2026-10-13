@@ -24,6 +24,7 @@ silently drifts from the repo.
 | iTerm profiles and colors | `flow install preferences:iterm` |
 | Claude Code + agent-framework | `flow install claude:setup` |
 | Rust (opt-in per machine) | `flow install rust` |
+| Worktrees (list, new, sync Claude settings, clean up) | see the `worktrees` skill |
 | Go tools / module tasks | `flow install go:tools`, `flow build\|test\|lint go:module` |
 | New Mac | `curl -fsSL https://raw.githubusercontent.com/jahvon/system/main/tools/bootstrap.sh \| sh` |
 | New Linux server | same, with `GIT_USER_NAME=… GIT_USER_EMAIL=… GITHUB_USER=… BOOTSTRAP_TARGET=ubuntu-server` |

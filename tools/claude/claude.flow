@@ -9,7 +9,7 @@ executables:
   - verb: install
     name: setup
     description: |
-      Install Claude Code if missing, link the system-setup skill, clone and register the
+      Install Claude Code if missing, link this repo's skills, clone and register the
       agent-framework workspace, then run its `install agent:global` (CLAUDE.md, settings, plugins).
       Safe to re-run.
     exec:
@@ -29,9 +29,11 @@ executables:
         flow workspace get agent-framework > /dev/null 2>&1 || flow workspace add agent-framework "$AF"
         flow sync
 
-        # The system-setup skill is versioned here; link it so it works from any directory
+        # Skills for this machine's setup are versioned here; link them so they work from any directory
         mkdir -p "$HOME/.claude/skills"
-        ln -sfn "$(git -C "$FLOW_WORKSPACE_PATH" rev-parse --show-toplevel)/.claude/skills/system-setup" "$HOME/.claude/skills/system-setup"
+        for skill in "$(git -C "$FLOW_WORKSPACE_PATH" rev-parse --show-toplevel)"/.claude/skills/*/; do
+          ln -sfn "${skill%/}" "$HOME/.claude/skills/$(basename "$skill")"
+        done
 
         # agent:global is private to its workspace, so run it from inside the checkout
         cd "$AF" && flow install agent:global

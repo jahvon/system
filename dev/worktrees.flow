@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+tags: [git, worktree, claude]
+description: Git worktrees across every repo in ~/workspaces, kept in step with Claude Code state
+
+executables:
+  - verb: list
+    name: worktrees
+    description: List linked worktrees in every repo with branch, age, uncommitted changes, and merged state
+    exec:
+      dir: //dev
+      args:
+        - flag: repo
+          envKey: REPO
+          default: ""
+      cmd: ./worktrees.sh list
+
+  - verb: clean
+    name: worktrees
+    description: |
+      Remove worktrees whose branch is merged (into the default branch, or by a merged PR) and that
+      are clean and not in use, folding their .claude/settings.local.json back into the main
+      checkout first. Prunes records of deleted worktrees, and deletes the Claude project
+      directories of worktrees that no longer exist after moving any memories into the repo's.
+
+      Dry run unless `--apply=true`.
+    exec:
+      dir: //dev
+      args:
+        - flag: repo
+          envKey: REPO
+          default: ""
+        - flag: apply
+          envKey: APPLY
+          default: "false"
+      cmd: ./worktrees.sh clean
+
+  - verb: new
+    name: worktree
+    description: |
+      Create a worktree of the current repo at .claude/worktrees/NAME (where Claude Code keeps them)
+      on a new branch from the latest origin default branch, with local Claude settings and env files
+      copied in. Prints the path. Run from inside the repo.
+    exec:
+      dir: ./
+      args:
+        - pos: 1
+          envKey: NAME
+          required: true
+        - flag: branch
+          envKey: BRANCH
+          default: ""
+      cmd: '"$FLOW_DEFINITION_DIR/worktrees.sh" new "$NAME"'
+
+  - verb: update
+    name: worktrees
+    description: |
+      Sync .claude/settings.local.json both ways between each main checkout and its worktrees
+      (permissions granted in either reach both) and copy missing local env files into worktrees.
+      Dry run unless `--apply=true`.
+    exec:
+      dir: //dev
+      args:
+        - flag: repo
+          envKey: REPO
+          default: ""
+        - flag: apply
+          envKey: APPLY
+          default: "false"
+      cmd: ./worktrees.sh update
