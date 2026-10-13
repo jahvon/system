@@ -51,6 +51,7 @@ flow run bootstrap:ubuntu-server    # Linux server setup from an existing checko
 flow install rust                   # opt-in Rust toolchain via mise
 flow install claude:setup           # Claude Code + agent-framework (CLAUDE.md, settings, plugins)
 flow install preferences:iterm      # Everforest iTerm profiles (shell, flow library, k9s)
+flow migrate flow:vault -- --target=op --to=<vault>   # copy a flow vault into 1Password/AWS SSM (dry run first)
 
 # Go
 flow build go:module                # also test/lint go:module; run from the module directory

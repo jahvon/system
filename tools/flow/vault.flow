@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: flow
+tags: [flow, vault, secrets]
+description: Flow vault maintenance
+
+executables:
+  - verb: migrate
+    name: vault
+    description: |
+      Copy every secret from a flow vault into 1Password, AWS SSM, or another flow vault, and make
+      the destination a flow vault with the same secret names. Executables that use bare
+      `secretRef` names keep working once you switch to it.
+
+      Dry run unless `--apply=true`. Values are streamed and never printed; each one is verified
+      by hash through flow before anything is switched. Re-running skips secrets already in the
+      target and re-verifies them.
+
+      Examples:
+        flow migrate flow:vault -- --target=op --to=personal --op-account=my.1password.com
+        flow migrate flow:vault -- --target=op --to=personal --op-account=my.1password.com --apply=true
+        flow migrate flow:vault -- --target=aws-ssm --to=ssm --ssm-prefix=/flow --apply=true --switch=true
+    exec:
+      dir: //tools/flow
+      args:
+        - flag: target
+          envKey: TARGET
+          required: true
+        - flag: to
+          envKey: TO
+          required: true
+        - flag: from
+          envKey: FROM
+          default: main
+        - flag: op-vault
+          envKey: OP_VAULT
+          default: flow
+        - flag: op-account
+          envKey: OP_ACCOUNT
+          default: ""
+        - flag: ssm-prefix
+          envKey: SSM_PREFIX
+          default: /flow
+        - flag: only
+          envKey: ONLY
+          default: ""
+        - flag: apply
+          envKey: APPLY
+          default: "false"
+        - flag: switch
+          envKey: SWITCH
+          default: "false"
+      cmd: ./migrate-vault.sh
