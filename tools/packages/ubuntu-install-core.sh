@@ -21,24 +21,23 @@ sudo apt-get install -y \
   tmux \
   zsh \
   git \
+  ca-certificates \
   build-essential
 
-# Development tools
+# Shell tools (node, go, and ruby come from mise, not apt)
 sudo apt-get install -y \
   python3 \
-  python3-pip \
-  nodejs \
-  npm
-
-# Additional tools from the Brewfile
-sudo apt-get install -y \
+  unzip \
+  fzf \
+  ripgrep \
+  fd-find \
   neovim \
   gh
 
 # Install yq (not available in standard apt repos)
 echo "Installing yq..."
 YQ_VERSION="v4.40.5"
-sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_$(dpkg --print-architecture)"
 sudo chmod +x /usr/local/bin/yq
 
 echo "Cleaning up..."

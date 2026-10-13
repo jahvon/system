@@ -7,24 +7,29 @@ set -e
 
 echo "Setting up Git configuration..."
 
-GIT_USER_NAME=$(git config --global user.name || echo "")
-GIT_USER_EMAIL=$(git config --global user.email || echo "")
-GITHUB_USER=$(git config --global github.user || echo "")
+# Values can come from the environment (GIT_USER_NAME, GIT_USER_EMAIL, GITHUB_USER) for
+# unattended runs; otherwise prompt on the terminal, since stdin may be a piped script.
+GIT_USER_NAME=${GIT_USER_NAME:-$(git config --global user.name || echo "")}
+GIT_USER_EMAIL=${GIT_USER_EMAIL:-$(git config --global user.email || echo "")}
+GITHUB_USER=${GITHUB_USER:-$(git config --global github.user || echo "")}
 
-if [ -z "$GIT_USER_NAME" ]; then
-  read -p "Enter your Git user name: " GIT_USER_NAME
-  git config --global user.name "$GIT_USER_NAME"
-fi
+ask() {
+  if [ -r /dev/tty ]; then
+    read -r -p "$1" answer < /dev/tty
+    echo "$answer"
+  else
+    echo "[ERROR] $2 is not set and there is no terminal to prompt on" >&2
+    exit 1
+  fi
+}
 
-if [ -z "$GIT_USER_EMAIL" ]; then
-  read -p "Enter your Git email: " GIT_USER_EMAIL
-  git config --global user.email "$GIT_USER_EMAIL"
-fi
+[ -n "$GIT_USER_NAME" ] || GIT_USER_NAME=$(ask "Enter your Git user name: " GIT_USER_NAME) || exit 1
+[ -n "$GIT_USER_EMAIL" ] || GIT_USER_EMAIL=$(ask "Enter your Git email: " GIT_USER_EMAIL) || exit 1
+[ -n "$GITHUB_USER" ] || GITHUB_USER=$(ask "Enter your GitHub username: " GITHUB_USER) || exit 1
 
-if [ -z "$GITHUB_USER" ]; then
-  read -p "Enter your GitHub username: " GITHUB_USER
-  git config --global github.user "$GITHUB_USER"
-fi
+git config --global user.name "$GIT_USER_NAME"
+git config --global user.email "$GIT_USER_EMAIL"
+git config --global github.user "$GITHUB_USER"
 
 # Credential helper (platform-specific)
 if [ "$(uname)" = "Darwin" ]; then

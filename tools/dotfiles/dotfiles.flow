@@ -25,10 +25,11 @@ executables:
           mkdir -p "$HOME/.zsh/plugins"
           for repo in romkatv/powerlevel10k zsh-users/zsh-autosuggestions zsh-users/zsh-syntax-highlighting; do
             dir="$HOME/.zsh/plugins/${repo#*/}"
+            # Public repos: skip the global https->ssh rewrite so this works before an SSH key is on GitHub
             if [ -d "$dir" ]; then
-              git -C "$dir" pull --ff-only
+              GIT_CONFIG_GLOBAL=/dev/null git -C "$dir" pull --ff-only
             else
-              git clone --depth=1 "https://github.com/$repo.git" "$dir"
+              GIT_CONFIG_GLOBAL=/dev/null git clone --depth=1 "https://github.com/$repo.git" "$dir"
             fi
           done
         fi
@@ -40,6 +41,7 @@ executables:
     exec:
       cmd: |
         set -e
+        export PATH="$HOME/.local/bin:$PATH"
         if ! command -v mise > /dev/null; then
           if [ "$(uname)" = "Darwin" ]; then
             brew install mise

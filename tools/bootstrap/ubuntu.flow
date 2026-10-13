@@ -59,25 +59,39 @@ executables:
         - ref: apply dotfiles:dotfiles
 
         - cmd: |
+            if [ "$(basename "$(getent passwd "$(id -un)" | cut -d: -f7)")" != "zsh" ]; then
+              echo "Setting zsh as the login shell..."
+              sudo chsh -s "$(command -v zsh)" "$(id -un)"
+            fi
+
+        - cmd: |
             echo ""
             echo "[DONE] Ubuntu setup complete"
             echo "[INFO] Log out and back in for group changes (Docker)"
             echo "[INFO] Test Docker: docker run hello-world"
 
   - verb: run
-    name: ubuntu-mini
+    name: ubuntu-server
+    aliases: [ubuntu-mini]
     description: |
-      Minimal Ubuntu bootstrap - core packages and Git only.
+      Ubuntu server bootstrap - the same shell setup as the desktop, without Docker.
 
       **What it does:**
       1. Installs core system packages
-      2. Sets up Git configuration
+      2. Sets up Git configuration (set GIT_USER_NAME, GIT_USER_EMAIL, GITHUB_USER to skip prompts)
+      3. Applies dotfiles (zsh plugins, symlinked config, mise tools)
+      4. Installs flow/mochi completions
+      5. Makes zsh the login shell
     serial:
       failFast: true
       execs:
-        - cmd: echo "Running minimal Ubuntu setup..."
-
         - ref: install packages:ubuntu
         - ref: setup dotfiles:git
-
-        - cmd: echo "[DONE] Minimal Ubuntu setup complete"
+        - ref: apply dotfiles:dotfiles
+        - ref: install packages:completions
+        - cmd: |
+            if [ "$(basename "$(getent passwd "$(id -un)" | cut -d: -f7)")" != "zsh" ]; then
+              echo "Setting zsh as the login shell..."
+              sudo chsh -s "$(command -v zsh)" "$(id -un)"
+            fi
+        - cmd: echo "[DONE] Ubuntu server setup complete. Log in again to start zsh."

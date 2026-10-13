@@ -3,6 +3,9 @@
 # f:verb=run f:name=system-bootstrap
 # <f|description>
 # Bootstrap a new system (macOS or Ubuntu) with Flow, tools, and dotfiles.
+#
+# Linux server one-liner:
+#   curl -fsSL https://raw.githubusercontent.com/jahvon/system/main/tools/bootstrap.sh | BOOTSTRAP_TARGET=ubuntu-server sh
 # </f|description>
 
 set -e
@@ -24,6 +27,12 @@ if [ "$OS_TYPE" = "unknown" ]; then
   echo "[ERROR] Unsupported operating system: $OSTYPE"
   echo "This script supports macOS and Ubuntu only."
   exit 1
+fi
+
+if [ "$OS_TYPE" = "ubuntu" ] && ! (command -v git > /dev/null && command -v curl > /dev/null); then
+  echo "Installing bootstrap prerequisites (git, curl)..."
+  sudo apt-get update
+  sudo apt-get install -y git curl ca-certificates
 fi
 
 export BINDIR=${BINDIR:-"$HOME/.local/bin"}
@@ -69,4 +78,5 @@ flow sync
 echo ""
 echo "Bootstrapping..."
 flow apply flow:config
-flow run bootstrap:
+# BOOTSTRAP_TARGET picks a specific bootstrap (e.g. ubuntu-server); default auto-detects the OS
+flow run "bootstrap:${BOOTSTRAP_TARGET:-}"
