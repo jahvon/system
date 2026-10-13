@@ -14,69 +14,7 @@ else
 fi
 
 echo "Installing Homebrew packages..."
-
-brew bundle --file=/dev/stdin <<EOF
-tap "homebrew/bundle"
-tap "homebrew/services"
-
-# Core
-brew "openssl@3"
-brew "wget"
-brew "telnet"
-brew "jq"
-brew "yq"
-brew "gawk"
-brew "tmux"
-
-# Programming Languages
-brew "openjdk@17"
-brew "python@3.11"
-# brew "go" # installing with version manager instead
-brew "golangci-lint"
-brew "node"
-brew "yarn"
-
-cask "goreleaser/tap/goreleaser"
-
-# Databases
-brew "postgresql"
-brew "redis"
-brew "mysql"
-brew "sqlite"
-
-# IDEs
-cask "visual-studio-code"
-cask "goland"
-cask "jetbrains-gateway"
-
-# Tools
-brew "gh"
-brew "podman"
-brew "hugo"
-brew "neovim"
-brew "thefuck"
-
-brew "age"
-brew "git-recent"
-brew "git-secret"
-brew "protobuf"
-
-# Kubernetes
-brew "kubectl"
-brew "kubectx"
-brew "helm"
-
-brew "k9s"
-brew "kind"
-brew "operator-sdk"
-
-# Cloud Providers
-tap "hashicorp/tap"
-
-brew "awscli"
-brew "eksctl"
-brew "hashicorp/tap/terraform"
-EOF
+brew bundle --file="${FLOW_DEFINITION_DIR:-$(dirname "$0")}/Brewfile"
 
 echo "Updating Homebrew..."
 brew update && brew upgrade

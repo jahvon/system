@@ -1,0 +1,78 @@
+# Language runtimes (node, go, ruby) are managed by mise, not Homebrew.
+
+# Shell
+brew "mise"
+brew "powerlevel10k"
+brew "zsh-autosuggestions"
+brew "zsh-syntax-highlighting"
+brew "fzf"
+brew "ripgrep"
+brew "fd"
+brew "tmux"
+brew "zellij"
+brew "neovim"
+cask "font-jetbrains-mono-nerd-font"
+cask "font-hack-nerd-font"
+
+# Core
+brew "coreutils"
+brew "wget"
+brew "telnet"
+brew "jq"
+brew "yq"
+brew "age"
+brew "pass"
+brew "nmap"
+brew "rclone"
+brew "imagemagick"
+brew "graphviz"
+brew "vhs"
+cask "1password-cli"
+cask "caffeine"
+
+# Git
+brew "git"
+brew "gh"
+brew "git-filter-repo"
+brew "git-recent"
+brew "git-secret"
+
+# Go
+brew "golangci-lint"
+brew "goreleaser"
+
+# Other languages
+brew "openjdk@17"
+brew "php"
+brew "composer"
+brew "hugo"
+
+# Databases
+brew "postgresql@14"
+brew "mysql"
+brew "redis"
+
+# Containers and Kubernetes
+brew "podman"
+brew "colima"
+brew "kubernetes-cli"
+brew "kubectx"
+brew "helm"
+brew "k9s"
+brew "kind"
+brew "talosctl"
+brew "operator-sdk"
+cask "openlens"
+
+# Cloud
+brew "awscli"
+brew "eksctl"
+brew "doctl"
+brew "flyctl"
+brew "terraform"
+cask "gcloud-cli"
+
+# IDEs
+cask "visual-studio-code"
+cask "goland"
+cask "jetbrains-gateway"
