@@ -9,7 +9,8 @@ executables:
     name: system
     description: |
       Update this machine: pull the system repo, upgrade packages, re-apply dotfiles, upgrade mise
-      tools, update the flow CLI, and regenerate completions. Works on macOS and Ubuntu.
+      tools, update the flow CLI, and regenerate completions. Works on macOS and Ubuntu. Also updates
+      the Claude Code setup (agent-framework) on machines where it is installed.
 
       The flow CLI update uses sudo to replace /usr/local/bin/flow, so expect a password prompt.
     serial:
@@ -26,6 +27,12 @@ executables:
         - ref: apply dotfiles:dotfiles
         - cmd: mise upgrade --yes
         - ref: update flow:cli
+        - cmd: |
+            if AF=$(flow workspace get agent-framework -o json 2>/dev/null | jq -r .path) && [ -d "$AF" ]; then
+              cd "$AF" && flow update agent:global
+            else
+              echo "agent-framework is not installed here; skipping Claude setup update"
+            fi
 
         - cmd: |
             echo ""

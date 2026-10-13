@@ -17,6 +17,7 @@ executables:
       3. Installs Homebrew packages (IDEs, databases, dev tools)
       4. Installs shell completions
       5. Applies dotfiles
+      6. Sets up Claude Code via the agent-framework workspace
     serial:
       failFast: true
       execs:
@@ -50,6 +51,11 @@ executables:
             echo ""
             echo "Setting up dotfiles..."
         - ref: apply dotfiles:dotfiles
+
+        - cmd: |
+            echo ""
+            echo "Setting up Claude Code..."
+        - ref: install claude:setup
 
         - cmd: |
             echo ""

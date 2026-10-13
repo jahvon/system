@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: claude
+tags: [claude, agents]
+description: Claude Code setup, delegated to the agent-framework workspace
+
+executables:
+  - verb: install
+    name: setup
+    description: |
+      Install Claude Code if missing, clone and register the agent-framework workspace, then run its
+      `install agent:global` (CLAUDE.md, settings, plugins). Safe to re-run.
+    exec:
+      cmd: |
+        set -e
+        export PATH="$HOME/.local/bin:$PATH"
+        if ! command -v claude > /dev/null; then
+          echo "Installing Claude Code..."
+          curl -fsSL https://claude.ai/install.sh | bash
+        fi
+
+        AF="${JAHVON:-$HOME/workspaces/github.com/jahvon}/agent-framework"
+        if [ ! -d "$AF/.git" ]; then
+          # Public repo over https, so this works before an SSH key is on GitHub
+          GIT_CONFIG_GLOBAL=/dev/null git clone https://github.com/jahvon/agent-framework.git "$AF"
+        fi
+        flow workspace get agent-framework > /dev/null 2>&1 || flow workspace add agent-framework "$AF"
+        flow sync
+        # agent:global is private to its workspace, so run it from inside the checkout
+        cd "$AF" && flow install agent:global

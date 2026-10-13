@@ -37,7 +37,7 @@ Re-running either command is safe, and it's how you update an existing machine.
 
 ```bash
 # Keep a machine current
-flow update system                  # pull, packages, dotfiles, mise, flow CLI, completions
+flow update system                  # pull, packages, dotfiles, mise, flow CLI, Claude setup
 flow check system:shell             # startup time, linked dotfiles, mise tools, completions
 
 # Setup pieces
@@ -47,6 +47,7 @@ flow install packages:completions   # regenerate flow/mochi zsh completions
 flow install packages:homebrew      # brew bundle from tools/packages/Brewfile
 flow run bootstrap:ubuntu-server    # Linux server setup from an existing checkout
 flow install rust                   # opt-in Rust toolchain via mise
+flow install claude:setup           # Claude Code + agent-framework (CLAUDE.md, settings, plugins)
 
 # Go
 flow build go:module                # also test/lint go:module; run from the module directory
