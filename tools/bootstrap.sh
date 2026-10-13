@@ -36,7 +36,7 @@ if (command -v flow > /dev/null); then
   flow --version
 else
   echo "Downloading and installing Flow..."
-  curl -sSL https://raw.githubusercontent.com/jahvon/flow/main/scripts/install.sh | bash
+  curl -sSL https://raw.githubusercontent.com/flowexec/flow/main/scripts/install.sh | bash
 
   # Add to PATH for current session only
   # Dotfiles will handle permanent PATH setup in .zshenv
