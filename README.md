@@ -16,6 +16,8 @@ Personal development environment and productivity tools managed with ([flow](htt
 - Dotfiles in `tools/dotfiles/templates/` are **symlinked** into `~`; edit them here. Machine-specific
   settings go in `~/.zshrc.local` / `~/.zshenv.local`
 - `devflow` / `devmochi` run the local dev builds from `$FLOWEXEC/flow` and `$FLOWEXEC/mochi`
+- Jump around with `cd <repo>` from anywhere, named dirs (`~mochi`, `~flow`, `~ico`, `~kube`,
+  `~system`, `~notes`, `~ws`), or `ws [query]` to pick any repo with fzf
 
 ## New machine
 
@@ -34,19 +36,25 @@ Re-running either command is safe, and it's how you update an existing machine.
 ## Common Commands
 
 ```bash
-# Tools & System
+# Keep a machine current
+flow update system                  # pull, packages, dotfiles, mise, flow CLI, completions
+flow check system:shell             # startup time, linked dotfiles, mise tools, completions
+
+# Setup pieces
 flow apply dotfiles:dotfiles        # plugins, symlinks, mise tools
 flow show dotfiles:                 # what is linked where
 flow install packages:completions   # regenerate flow/mochi zsh completions
 flow install packages:homebrew      # brew bundle from tools/packages/Brewfile
 flow run bootstrap:ubuntu-server    # Linux server setup from an existing checkout
+flow install rust                   # opt-in Rust toolchain via mise
+
+# Go
+flow build go:module                # also test/lint go:module; run from the module directory
+flow install go:tools               # mockgen, dlv
+flow template generate <name> --template module   # new Go module scaffold
+
+# Editors and notes
 flow open vscode
-
-# Development
-flow new branch
-flow new commit
-
-# Productivity
-flow get tasks
-flow add task
+flow open jetbrains:goland
+flow create daily
 ```
