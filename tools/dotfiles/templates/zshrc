@@ -88,6 +88,7 @@ alias ....="cd ../../.."
 
 # Named dirs work anywhere in a path (cd ~mochi/desktop) and shorten the prompt
 hash -d ws="$WORKSPACES"
+hash -d flowexec="$FLOWEXEC"
 hash -d mochi="$FLOWEXEC/mochi"
 hash -d flow="$FLOWEXEC/flow"
 hash -d ico="$JAHVON/inference-cluster-ops"
@@ -123,6 +124,7 @@ _ws() { local -a names=(${(f)"$(_ws_repos)"}); compadd -- ${names:t}; }
 compdef _ws ws
 
 ### Flow and Mochi
+alias fx="cd $FLOWEXEC"
 alias f="flow"
 alias lib="flow browse"
 alias devflow="$FLOWEXEC/flow/.bin/flow"
