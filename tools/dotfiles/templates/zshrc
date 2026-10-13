@@ -91,19 +91,19 @@ hash -d ws="$WORKSPACES"
 hash -d mochi="$FLOWEXEC/mochi"
 hash -d flow="$FLOWEXEC/flow"
 hash -d ico="$JAHVON/inference-cluster-ops"
-hash -d kube="$WORKSPACES/git.malik.haus/apps/kube"
+hash -d kube="$JAHVON/kube"
 hash -d system="$JAHVON/system"
 hash -d notes="$OBSIDIAN_VAULT"
 
 # `cd <repo>` from anywhere for repos in these parents
-cdpath=(. "$FLOWEXEC" "$WORKSPACES/git.malik.haus/apps" "$JAHVON" "$GITHUB/klipster-eng" "$WORKSPACES")
+cdpath=(. "$FLOWEXEC" "$JAHVON" "$GITHUB/klipster-eng" "$WORKSPACES")
 
 # ws [query]: jump to a repo by exact name, or pick one with fzf (no args lists every repo)
 # Listed in priority order: an exact name match picks the first hit (flowexec/flow over jahvon/flow)
 _ws_repos() {
   setopt local_options extended_glob
-  print -l "$FLOWEXEC"/*(N/) "$WORKSPACES"/git.malik.haus/*/*(N/) "$JAHVON"/*(N/) \
-    "$WORKSPACES"/github.com/^(flowexec|jahvon)/*(N/) "$WORKSPACES"/sandbox/*(N/)
+  print -l "$FLOWEXEC"/*(N/) "$JAHVON"/*(N/) "$WORKSPACES"/github.com/^(flowexec|jahvon)/*(N/) \
+    "$WORKSPACES"/sandbox/*(N/) "$WORKSPACES"/git.malik.haus/*/*(N/)
 }
 ws() {
   local -a repos=(${(f)"$(_ws_repos)"})
