@@ -40,6 +40,14 @@ case "$TARGET" in
 esac
 [ "$FROM" != "$TO" ] || die "FROM and TO must differ"
 
+if [ "$TARGET" = "op" ]; then
+  # An empty OP_ACCOUNT would let op fall back to whichever account it picks; with a work and a
+  # personal account signed in, that must be an explicit choice.
+  if [ -n "${OP_ACCOUNT:-}" ]; then export OP_ACCOUNT; else unset OP_ACCOUNT; fi
+  op vault get "$OP_VAULT" > /dev/null 2>&1 \
+    || die "1Password vault '$OP_VAULT' not found${OP_ACCOUNT:+ in $OP_ACCOUNT}; create it (op vault create $OP_VAULT${OP_ACCOUNT:+ --account $OP_ACCOUNT}) or pass --op-vault"
+fi
+
 STAGE_DIR="$(mktemp -d)"
 chmod 700 "$STAGE_DIR"
 trap 'rm -rf "$STAGE_DIR"' EXIT
