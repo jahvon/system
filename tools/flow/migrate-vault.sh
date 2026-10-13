@@ -103,14 +103,17 @@ write_secret() {
   esac
 }
 
-# External vault config that reads back through the provider's CLI (matches flowexec/vault examples)
+# External vault config that reads back through the provider's CLI. flow strips one trailing
+# newline from the command's output, so the command must always add exactly one. `op read` adds
+# one only when the value doesn't already end in a newline, and --no-newline never does, so
+# either alone loses the final newline of values like kubeconfigs.
 external_config() {
   case "$TARGET" in
     op)
       jq -n --arg id "$TO" --arg acct "${OP_ACCOUNT:-}" '{
         id: $id, type: "external",
         external: {
-          get: {cmd: "op read --no-newline '\''{{ref}}'\''"},
+          get: {cmd: "op read --no-newline '\''{{ref}}'\'' && echo"},
           metadata: {cmd: "op account list"},
           reference_pattern: "^op://[^/]+/[^/]+/[^/]+(/[^/]+)?$",
           not_found_pattern: "isn'\''t an item",
