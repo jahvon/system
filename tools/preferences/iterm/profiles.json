@@ -5,9 +5,9 @@
       "ASCII Ligatures": false,
       "AWDS Pane Directory": "",
       "AWDS Pane Option": "Recycle",
-      "AWDS Tab Directory": "/Users/jahvon/workspaces",
+      "AWDS Tab Directory": "${HOME}/workspaces",
       "AWDS Tab Option": "Yes",
-      "AWDS Window Directory": "/Users/jahvon/workspaces",
+      "AWDS Window Directory": "${HOME}/workspaces",
       "AWDS Window Option": "Yes",
       "Allow Title Reporting": false,
       "Ambiguous Double Width": false,
@@ -499,7 +499,7 @@
       "Vertical Spacing": 1.0,
       "Visual Bell": true,
       "Window Type": 0,
-      "Working Directory": "/Users/jahvon/workspaces",
+      "Working Directory": "${HOME}/workspaces",
       "Initial Text": ""
     },
     {
@@ -1040,7 +1040,7 @@
       "Vertical Spacing": 1.0,
       "Visual Bell": true,
       "Window Type": 0,
-      "Working Directory": "/Users/jahvon/workspaces"
+      "Working Directory": "${HOME}/workspaces"
     },
     {
       "ASCII Anti Aliased": true,
@@ -1580,7 +1580,7 @@
       "Vertical Spacing": 1.0,
       "Visual Bell": true,
       "Window Type": 0,
-      "Working Directory": "/Users/jahvon"
+      "Working Directory": "${HOME}"
     }
   ]
 }
