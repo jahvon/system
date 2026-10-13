@@ -1,37 +1,50 @@
-data:
-  - key: Name
-    prompt: Module name
-    default: template
+description: Go module scaffold (go.mod, main.go) with build, run, test, lint, and debug executables
+form:
+  - key: module
+    prompt: Go module path
+    default: github.com/jahvon
+    description: Module path prefix; the generated name is appended (e.g. github.com/jahvon/<name>)
 artifacts:
-  - go.mod
-  - main.go
+  - srcName: main.go
+postRun:
+  - cmd: cd "{{ directory }}" && go mod init {{ form["module"] }}/{{ trimSuffix(name, ".flow") }}
 
-visibility: private
-tags: [go]
-description:
-executables:
-  - verb: build
-    name: "{{ .Name }}"
-    description: Build the {{ .Name }} Go module
-    exec:
-      args:
-        - envKey: BINPATH
-          pos: 1
-          default: "./bin/{{ .Name }}"
-      cmd: |
-        go build -o "$BINPATH" main.go
-        echo "Build successful. Run ./$BINPATH to execute the module."
+template: |
+  visibility: private
+  tags: [go]
+  executables:
+    - verb: build
+      name: "{{ trimSuffix(name, ".flow") }}"
+      description: Build {{ trimSuffix(name, ".flow") }} into ./bin
+      exec:
+        args:
+          - envKey: BINPATH
+            pos: 1
+            default: "./bin/{{ trimSuffix(name, ".flow") }}"
+        cmd: |
+          go build -o "$BINPATH" .
+          echo "Built $BINPATH"
 
-  - verb: run
-    name: "{{ .Name }}"
-    description: Run the {{ .Name }} Go module
-    exec:
-      cmd: |
-        go run .
+    - verb: run
+      name: "{{ trimSuffix(name, ".flow") }}"
+      description: Run {{ trimSuffix(name, ".flow") }}
+      exec:
+        cmd: go run .
 
-  - verb: debug
-    name: "{{ .Name }}"
-    description: Debug the {{ .Name }} Go module
-    exec:
-      cmd: |
-        dlv debug .
+    - verb: test
+      name: "{{ trimSuffix(name, ".flow") }}"
+      description: Test {{ trimSuffix(name, ".flow") }}
+      exec:
+        cmd: go test ./...
+
+    - verb: lint
+      name: "{{ trimSuffix(name, ".flow") }}"
+      description: Lint {{ trimSuffix(name, ".flow") }} with golangci-lint
+      exec:
+        cmd: golangci-lint run ./...
+
+    - verb: debug
+      name: "{{ trimSuffix(name, ".flow") }}"
+      description: Debug {{ trimSuffix(name, ".flow") }} with dlv
+      exec:
+        cmd: dlv debug .

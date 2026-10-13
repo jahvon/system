@@ -1,32 +1,20 @@
 #!/bin/sh
 
 # f:verb=install f:name=tools
-# f:desc=Install go version manager and go tools
+# f:desc=Install Go developer tools (mockgen, dlv); Go itself comes from mise
 
 set -e
 
-GOBIN="$GOPATH/bin"
-if [[ -f $GOBIN/g ]]; then
-  goversion=$(go version | awk '{print $3}')
-  echo "go version manager (g) is already installed (go version: $goversion)"
-else
-  echo "Installing go version manager (g)..."
-  curl -sSL https://git.io/g-install | sh -s -- -y
-  $GOBIN/g install latest
+if ! command -v go > /dev/null; then
+  echo "go is not on PATH; run 'flow install dotfiles:mise' first"
+  exit 1
 fi
+echo "Using $(go version)"
 
-if (command -v mockgen > /dev/null); then
-  mockgenversion=$(mockgen --version)
-  echo "go mockgen is already installed ($mockgenversion)"
-else
-  echo "Installing go mockgen..."
-  go install go.uber.org/mock/mockgen@latest
-fi
+echo "Installing mockgen..."
+go install go.uber.org/mock/mockgen@latest
 
-if (command -v dlv > /dev/null); then
-  dlvversion=$(dlv version)
-  echo "dlv is already installed ($dlvversion)"
-else
-  echo "Installing dlv..."
-  go install github.com/go-delve/delve/cmd/dlv@latest
-fi
+echo "Installing dlv..."
+go install github.com/go-delve/delve/cmd/dlv@latest
+
+echo "[DONE] Go tools installed to $(go env GOBIN)"

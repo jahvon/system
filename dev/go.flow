@@ -1,11 +1,35 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
 visibility: public
 namespace: go
 tags: [go, development]
-fromFile:
+description: Go module helpers that run against the module in the current directory
+
+imports:
   - install-go-tools.sh
 
 executables:
   - verb: build
     name: module
+    description: Build every package in the Go module in the current directory
     exec:
+      dir: ./
       cmd: go build ./...
+
+  - verb: test
+    name: module
+    description: Run the tests for the Go module in the current directory
+    exec:
+      dir: ./
+      args:
+        - envKey: TEST_ARGS
+          pos: 1
+          default: "./..."
+      cmd: go test $TEST_ARGS
+
+  - verb: lint
+    name: module
+    description: Run golangci-lint against the Go module in the current directory
+    exec:
+      dir: ./
+      cmd: golangci-lint run ./...
