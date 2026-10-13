@@ -82,17 +82,42 @@ alias ozshrc="$EDITOR ~/.zshrc.local"
 alias ozshenv="$EDITOR ~/.zshenv.local"
 
 ### Navigating
-alias gohome="cd $HOME"
-alias gocache="cd $CACHE_ROOT"
-alias gows="cd $WORKSPACES"
-alias gogh="cd $GITHUB"
-alias gonotes="cd \"$OBSIDIAN_VAULT\""
-alias godownloads="cd $DOWNLOADS"
-alias gosandbox="cd $SANDBOX"
-alias gotools="cd $TOOLS"
 alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
+
+# Named dirs work anywhere in a path (cd ~mochi/desktop) and shorten the prompt
+hash -d ws="$WORKSPACES"
+hash -d mochi="$FLOWEXEC/mochi"
+hash -d flow="$FLOWEXEC/flow"
+hash -d ico="$JAHVON/inference-cluster-ops"
+hash -d kube="$WORKSPACES/git.malik.haus/apps/kube"
+hash -d system="$JAHVON/system"
+hash -d notes="$OBSIDIAN_VAULT"
+
+# `cd <repo>` from anywhere for repos in these parents
+cdpath=(. "$FLOWEXEC" "$WORKSPACES/git.malik.haus/apps" "$JAHVON" "$GITHUB/klipster-eng" "$WORKSPACES")
+
+# ws [query]: jump to a repo by exact name, or pick one with fzf (no args lists every repo)
+# Listed in priority order: an exact name match picks the first hit (flowexec/flow over jahvon/flow)
+_ws_repos() {
+  setopt local_options extended_glob
+  print -l "$FLOWEXEC"/*(N/) "$WORKSPACES"/git.malik.haus/*/*(N/) "$JAHVON"/*(N/) \
+    "$WORKSPACES"/github.com/^(flowexec|jahvon)/*(N/) "$WORKSPACES"/sandbox/*(N/)
+}
+ws() {
+  local -a repos=(${(f)"$(_ws_repos)"})
+  local -a exact=(${(M)repos:#*/$1})
+  if [[ -n "$1" && ${#exact} -gt 0 ]]; then
+    cd "$exact[1]"
+    return
+  fi
+  local dir
+  dir=$(print -l ${repos#$WORKSPACES/} | fzf --height=40% --reverse --select-1 --exit-0 --query="$1") || return
+  cd "$WORKSPACES/$dir"
+}
+_ws() { local -a names=(${(f)"$(_ws_repos)"}); compadd -- ${names:t}; }
+compdef _ws ws
 
 ### Flow and Mochi
 alias f="flow"
