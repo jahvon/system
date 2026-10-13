@@ -19,6 +19,8 @@ executables:
           echo "iTerm profiles are macOS-only; skipping"
           exit 0
         fi
+        # iTerm's parser rejects NaN/Infinity, which lenient tools like jq accept
+        python3 -c 'import json,sys; json.load(open("profiles.json"), parse_constant=lambda c: sys.exit("profiles.json: invalid JSON constant " + c))'
         DEST="$HOME/Library/Application Support/iTerm2/DynamicProfiles"
         mkdir -p "$DEST"
         # A copy, not a symlink: iTerm only reloads when a real file in this directory changes
