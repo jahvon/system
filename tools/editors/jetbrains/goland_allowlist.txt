@@ -1,5 +1,0 @@
-codestyles/Default.xml
-options/editor-font.xml
-options/filetypes.xml
-options/github-copilot.xml
-options/spellchecker-dictionary.xml

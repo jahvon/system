@@ -1,4 +1,0 @@
-visibility: public
-tags: [packages]
-fromFile:
-  - install-fonts.sh

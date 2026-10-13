@@ -1,8 +1,0 @@
-<code_scheme name="Default" version="173">
-  <GoCodeStyleSettings>
-    <option name="ADD_LEADING_SPACE_TO_COMMENTS" value="true" />
-    <option name="GROUP_STDLIB_IMPORTS" value="true" />
-    <option name="CREATE_LOCAL_GROUP" value="true" />
-    <option name="LOCAL_PACKAGE_PREFIXES" />
-  </GoCodeStyleSettings>
-</code_scheme>
