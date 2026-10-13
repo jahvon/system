@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+tags: [system, update]
+description: Keep a bootstrapped machine current
+
+executables:
+  - verb: update
+    name: system
+    description: |
+      Update this machine: pull the system repo, upgrade packages, re-apply dotfiles, upgrade mise
+      tools, update the flow CLI, and regenerate completions. Works on macOS and Ubuntu.
+
+      The flow CLI update uses sudo to replace /usr/local/bin/flow, so expect a password prompt.
+    serial:
+      failFast: true
+      execs:
+        - cmd: git pull --ff-only || echo "[WARN] Could not fast-forward the system repo; continuing with the local copy"
+        - cmd: flow sync
+
+        - ref: install packages:macos
+          if: os == "darwin"
+        - ref: install packages:ubuntu
+          if: os == "linux"
+
+        - ref: apply dotfiles:dotfiles
+        - cmd: mise upgrade --yes
+        - ref: update flow:cli
+
+        - cmd: |
+            echo ""
+            echo "[DONE] System updated. Run 'flow check system:shell' to verify, then open a new shell."

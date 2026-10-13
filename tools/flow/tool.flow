@@ -15,7 +15,8 @@ executables:
         curl -sSL https://raw.githubusercontent.com/flowexec/flow/main/scripts/install.sh | bash
 
         echo "Updating flow zsh autocompletion..."
-        flow completion zsh > ~/.oh-my-zsh/completions/_flow
+        mkdir -p ~/.zsh/completions
+        flow completion zsh > ~/.zsh/completions/_flow
 
   - verb: apply
     name: config

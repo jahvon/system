@@ -1,9 +1,25 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
 visibility: public
-namespace: rust
 tags: [rust, development]
+description: Rust toolchain via mise
 
 executables:
   - verb: install
     name: rust
+    description: |
+      Install the stable Rust toolchain with mise.
+
+      Writes ~/.config/mise/conf.d/rust.toml instead of the shared global config, so Rust stays
+      opt-in per machine (it isn't needed on servers).
     exec:
-      cmd: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      args:
+        - envKey: RUST_VERSION
+          pos: 1
+          default: stable
+      cmd: |
+        set -e
+        mkdir -p "$HOME/.config/mise/conf.d"
+        printf '[tools]\nrust = "%s"\n' "$RUST_VERSION" > "$HOME/.config/mise/conf.d/rust.toml"
+        mise install rust
+        echo "[DONE] $(mise exec -- rustc --version)"

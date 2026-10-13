@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: system
+tags: [shell, zsh]
+description: Shell health checks
+
+executables:
+  - verb: check
+    name: shell
+    description: |
+      Check that the zsh setup is healthy: startup time, cached completions, linked dotfiles,
+      and mise-managed tools on PATH. Exits non-zero if any check fails.
+    exec:
+      args:
+        - envKey: MAX_STARTUP_MS
+          flag: max-ms
+          default: "200"
+      cmd: |
+        failures=0
+        pass() { echo "[PASS] $1"; }
+        fail() { echo "[FAIL] $1"; failures=$((failures + 1)); }
+
+        # Run zsh under a pseudo-terminal so compinit and the prompt behave like a real terminal
+        in_pty() {
+          if [ "$(uname)" = "Darwin" ]; then
+            script -q /dev/null "$@" < /dev/null > /dev/null 2>&1
+          else
+            script -qec "$*" /dev/null < /dev/null > /dev/null 2>&1
+          fi
+        }
+
+        for f in .zshrc .zshenv .zprofile .zsh/path.zsh .p10k.zsh .config/mise/config.toml; do
+          if [ -L "$HOME/$f" ] && [ -e "$HOME/$f" ]; then pass "~/$f is linked"; else fail "~/$f is not a valid symlink"; fi
+        done
+
+        now_ms() { zsh -c 'zmodload zsh/datetime; printf "%d" $(( EPOCHREALTIME * 1000 ))'; }
+
+        if ! in_pty zsh -il -c exit; then
+          fail "zsh did not start cleanly in a pseudo-terminal; skipping startup timing"
+          echo "$failures check(s) failed"
+          exit 1
+        fi
+        dump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
+        before=$(ls -l "$dump" 2>/dev/null)
+        total=0
+        for i in 1 2 3; do
+          start=$(now_ms)
+          in_pty zsh -il -c exit || fail "zsh failed on timing run $i"
+          end=$(now_ms)
+          total=$((total + end - start))
+        done
+        avg=$((total / 3))
+        if [ "$avg" -le "$MAX_STARTUP_MS" ]; then pass "startup ${avg}ms (limit ${MAX_STARTUP_MS}ms)"; else fail "startup ${avg}ms exceeds ${MAX_STARTUP_MS}ms"; fi
+        if [ -n "$before" ] && [ "$before" = "$(ls -l "$dump" 2>/dev/null)" ]; then
+          pass "completion cache reused"
+        else
+          fail "completion cache was rebuilt on a warm start"
+        fi
+
+        [ -s "$HOME/.zsh/completions/_flow" ] && pass "flow completion installed" || fail "flow completion missing (flow install packages:completions)"
+
+        for tool in node go ruby; do
+          resolved=$(zsh -c "command -v $tool" 2>/dev/null)
+          case "$resolved" in
+            */mise/shims/*) pass "$tool -> $resolved" ;;
+            "") fail "$tool not found" ;;
+            *) fail "$tool resolves to $resolved, not a mise shim" ;;
+          esac
+        done
+
+        command -v flow > /dev/null && pass "flow on PATH" || fail "flow not on PATH"
+
+        echo ""
+        if [ "$failures" -gt 0 ]; then
+          echo "$failures check(s) failed"
+          exit 1
+        fi
+        echo "All checks passed"
