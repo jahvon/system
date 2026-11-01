@@ -19,6 +19,8 @@ Outside the system repo, qualify refs as `system/…` (`flow show system/server:
 | Open a shell (humans) | `flow connect server:shell devbox` |
 | One-click equivalents | `flow check devbox:status`, `flow connect devbox:shell`, same for `workbox` |
 | Compare registry with reality | `flow check network:drift` |
+| Pi-hole stats, pause, blocklists | `flow get pihole:summary`, `flow pause pihole:blocking 60`, `flow update pihole:gravity` |
+| Update Pi-hole or its settings | Edit `tools/pihole/docker-compose.yml`, then `flow apply pihole:config` |
 
 Use `k3s:` executables in the `kube` workspace for k3s node work, not `run server:command`.
 
@@ -33,7 +35,7 @@ opening a window. Hand it to the user:
 
 ## Things to know
 
-- Pi-hole runs in Docker on devbox, outside k3s. Tailscale runs on the hosts, so remote access
+- Pi-hole runs in Docker on devbox, outside k3s, and must stay in `ALL` listening mode to answer tailnet clients. Tailscale runs on the hosts, so remote access
   survives a k3s failure.
 - SSH prompts through the 1Password agent. If a run fails with `Permission denied`, 1Password may
   be locked or waiting for approval.
