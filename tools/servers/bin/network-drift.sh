@@ -80,12 +80,12 @@ else
         | while read -r stale; do warn "stale tailnet device with an expired key: $stale"; done
 fi
 
-# Hardcoded LAN addresses the registry doesn't know about, across the repos that hold them.
+# Hardcoded LAN addresses the registry doesn't know about, in the repo that holds them.
 known=$(yq -r '.servers[].address' "$INVENTORY")
 prefix=$(printf '%s' "$lan" | cut -d. -f1-3)
 pattern=$(printf '%s' "$prefix" | sed 's/\./\\./g')
 root=$(CDPATH= cd -- "$SERVERS_DIR/../../.." && pwd)
-for repo in "$root/kube" "$root/../../git.malik.haus/homelab"; do
+for repo in "$root/kube"; do
     [ -d "$repo" ] || continue
     grep -rIoE --exclude-dir=archive --exclude-dir=.git --exclude-dir=.claude --exclude-dir=.data \
         "$pattern\.[0-9]{1,3}" "$repo" 2>/dev/null | awk -F: '{ print $2 }' | sort -u | grep -vE '\.(0|255)$' | while read -r ip; do
