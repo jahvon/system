@@ -19,6 +19,7 @@ Outside the system repo, qualify refs as `system/…` (`flow show system/server:
 | Open a shell (humans) | `flow connect server:shell devbox` |
 | One-click equivalents | `flow check devbox:status`, `flow connect devbox:shell`, same for `workbox` |
 | Open the Ubuntu desktop | `flow open devbox:desktop` |
+| Persistent Claude on a server | `flow start devbox:claude`, `flow show devbox:claude`, `flow connect devbox:claude`; `install`/`stop server:claude <server>` |
 | Compare registry with reality | `flow check network:drift` |
 | Pi-hole stats, pause, blocklists | `flow get pihole:summary`, `flow pause pihole:blocking 60`, `flow update pihole:gravity` |
 | Update Pi-hole or its settings | Edit `tools/pihole/docker-compose.yml`, then `flow apply pihole:config` |
@@ -47,4 +48,5 @@ opening a window. Hand it to the user:
 - In Mochi, or through MCP on flow without the `fix/mcp-agent-ergonomics` changes, arguments split
   on spaces. Pass flag args after `--`, and run multi-word remote commands from the CLI. Failed runs
   may also report `isError: false`, so confirm with `get_execution_logs`.
+- Claude sessions run in tmux as `claude-<workspace>` with Remote Control on, in the `checkout` the registry names. Never answer a session's trust or permission prompts on the user's behalf. To drive one non-interactively, run `claude -p -c` in its checkout.
 - `flow check server:status` saves its result to flow's data store as `server.<name>.status`.

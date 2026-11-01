@@ -27,3 +27,25 @@ executables:
     exec:
       dir: //tools/servers
       cmd: ./bin/desktop.sh devbox
+
+  - verb: connect
+    name: claude
+    description: Attach to the Claude session on devbox in iTerm. Detach with Ctrl-b d; it keeps running.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/claude.sh connect devbox
+
+  - verb: show
+    name: claude
+    tags: [read-only]
+    description: Show whether the Claude session on devbox is running, and its current screen. Read-only.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/claude.sh status devbox
+
+  - verb: start
+    name: claude
+    description: Start or confirm the persistent Claude session on devbox, with Remote Control on. Safe to re-run.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/claude.sh start devbox

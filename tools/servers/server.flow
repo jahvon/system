@@ -142,6 +142,84 @@ executables:
           required: true
       cmd: ./bin/desktop-setup.sh "$SERVER"
 
+  - verb: install
+    name: claude
+    description: |
+      Prepare a server for Claude sessions: `flow install server:claude devbox [workspace]`. Clones the session's
+      checkout, sets the permission mode to default, installs agent-framework and system skills. Changes the
+      server. Safe to re-run. Needs Claude Code already logged in there.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+        - pos: 2
+          envKey: WORKSPACE
+          default: ""
+      cmd: ./bin/claude.sh install "$SERVER" "$WORKSPACE"
+
+  - verb: start
+    name: claude
+    description: |
+      Start a persistent Claude session in tmux, with Remote Control on: `flow start server:claude devbox [workspace]`.
+      Resumes the last conversation. Safe to re-run; one session per workspace. Reach it from claude.ai or the mobile app.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+        - pos: 2
+          envKey: WORKSPACE
+          default: ""
+      cmd: ./bin/claude.sh start "$SERVER" "$WORKSPACE"
+
+  - verb: show
+    name: claude
+    tags: [read-only]
+    description: Show whether a server's Claude session is running, and its current screen. Read-only. Exits 1 if not running.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+        - pos: 2
+          envKey: WORKSPACE
+          default: ""
+      cmd: ./bin/claude.sh status "$SERVER" "$WORKSPACE"
+
+  - verb: connect
+    name: claude
+    description: |
+      Attach to a server's Claude session in iTerm. Detach with Ctrl-b d; the session keeps running. Agents get
+      the command printed instead, and should use `claude -p -c` in the checkout through run server:command.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+        - pos: 2
+          envKey: WORKSPACE
+          default: ""
+      cmd: ./bin/claude.sh connect "$SERVER" "$WORKSPACE"
+
+  - verb: stop
+    name: claude
+    description: Stop a server's Claude session by ending its tmux session. Conversation history stays; start resumes it.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+        - pos: 2
+          envKey: WORKSPACE
+          default: ""
+      cmd: ./bin/claude.sh stop "$SERVER" "$WORKSPACE"
+
   - verb: show
     name: inventory
     tags: [read-only]
