@@ -21,6 +21,7 @@ clusters:
 
 # Release workspaces: servers register these from git and track `ref`, using their public executables.
 # A server's `sessions` use an editable `checkout` instead, because flow manages its git clones.
+# Workspaces with their own `checkout` are cloned there for development rather than managed by flow.
 workspaces:
   system:
     git: git@github.com:jahvon/system.git
@@ -31,6 +32,14 @@ workspaces:
   kube:
     git: git@github.com:jahvon/kube.git
     ref: main
+  flow:
+    git: git@github.com:flowexec/flow.git
+    ref: main
+    checkout: ~/workspaces/github.com/flowexec/flow
+  mochi:
+    git: git@github.com:flowexec/mochi.git
+    ref: main
+    checkout: ~/workspaces/github.com/flowexec/mochi
 
 servers:
   devbox:
@@ -45,7 +54,7 @@ servers:
     sessions:
       - workspace: kube
         checkout: ~/workspaces/github.com/jahvon/kube
-    workspaces: [system, agent-framework, kube]
+    workspaces: [system, agent-framework, kube, flow, mochi]
   workbox:
     kind: server
     address: 192.168.68.136

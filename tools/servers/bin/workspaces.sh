@@ -46,8 +46,16 @@ case "$action" in
             printf '%s\n' "$current" | grep -qxF "$ws" && continue
             git=$(W="$ws" yq -r '.workspaces[env(W)].git' "$INVENTORY")
             ref=$(W="$ws" yq -r '.workspaces[env(W)].ref' "$INVENTORY")
-            remote "GIT_TERMINAL_PROMPT=0 flow workspace add '$ws' '$git' --branch '$ref' 2>/dev/null" >/dev/null
-            echo "registered $ws from $git ($ref)"
+            checkout=$(W="$ws" yq -r '.workspaces[env(W)].checkout // ""' "$INVENTORY")
+            if [ -n "$checkout" ]; then
+                # ~ stays unquoted here so the server expands it.
+                dir=$(printf '%s' "$checkout" | sed 's|^~/||')
+                remote "[ -d \"\$HOME/$dir/.git\" ] || GIT_TERMINAL_PROMPT=0 git clone -q --branch '$ref' '$git' \"\$HOME/$dir\"; flow workspace add '$ws' \"\$HOME/$dir\" >/dev/null"
+                echo "cloned and registered $ws at $checkout"
+            else
+                remote "GIT_TERMINAL_PROMPT=0 flow workspace add '$ws' '$git' --branch '$ref' 2>/dev/null" >/dev/null
+                echo "registered $ws from $git ($ref)"
+            fi
         done
         # The system checkout is a plain clone, so refuse to pull over local changes.
         remote 'ws_dir=$(flow workspace list -o json | jq -r ".workspaces[] | select(.name == \"system\") | .path")
