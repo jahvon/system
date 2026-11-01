@@ -3,6 +3,7 @@
 # After editing, run `flow apply server:ssh-config`.
 
 network:
+  domain: malik.haus
   lan: 192.168.68.0/24
   podCidr: 10.42.0.0/16
   dns:

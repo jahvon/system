@@ -1,6 +1,6 @@
 #!/bin/sh
 # Operates Pi-hole on the DNS server named in the registry, through its CLI, so no API password is needed.
-#   usage: pihole.sh <status|summary|top-queries|top-blocked|clients|pause [seconds]|enable|flush|gravity|apply>
+#   usage: pihole.sh <status|summary|top-queries|top-blocked|clients|pause [seconds]|enable|flush|gravity|apply|records>
 set -eu
 DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 SERVERS_DIR="$DIR/../servers"
@@ -44,7 +44,28 @@ apply() {
     echo "[DONE] Pi-hole applied on $server"
 }
 
+# Adds an A record in Pi-hole for each server, like devbox.malik.haus. Leaves other records alone.
+records() {
+    domain=$(yq -r '.network.domain' "$INVENTORY")
+    current=$(ssh "$server" 'docker exec pihole pihole-FTL --config dns.hosts' | tr -d '[]' | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$')
+    changed=false
+    for name in $(yq -r '.servers | to_entries | .[] | select(.value.kind == "server") | .key' "$INVENTORY"); do
+        record="$(reg_get "$name" .address) $name.$domain"
+        if printf '%s\n' "$current" | grep -qxF "$record"; then
+            echo "[OK] $record"
+        else
+            current=$(printf '%s\n%s' "$current" "$record")
+            changed=true
+            echo "[ADD] $record"
+        fi
+    done
+    [ "$changed" = true ] || return 0
+    json=$(printf '%s\n' "$current" | jq -R . | jq -sc .)
+    ssh "$server" "docker exec pihole pihole-FTL --config dns.hosts '$json'" >/dev/null
+}
+
 case "${1:-}" in
+    records) records ;;
     status) pihole status 2>/dev/null; api dns/blocking | jq -r '"Blocking: \(.blocking)"' ;;
     summary) summary ;;
     top-queries) api 'stats/top_domains?count=15' | jq -r '.domains[] | "\(.count)\t\(.domain)"' ;;

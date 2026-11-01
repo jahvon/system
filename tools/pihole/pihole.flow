@@ -96,6 +96,15 @@ executables:
       dir: //tools/pihole
       cmd: ./pihole.sh apply
 
+  - verb: apply
+    name: records
+    description: |
+      Add a DNS record in Pi-hole for each server in the registry, like devbox.malik.haus.
+      Safe to re-run. Leaves other records alone.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh records
+
   - verb: open
     name: admin
     description: Open the Pi-hole admin interface in a browser.
