@@ -1,0 +1,47 @@
+#!/bin/sh
+# Upgrades this node's k3s by swapping the binary, which keeps the service's flags. Re-running
+# the install script without them would drop them. Installed by `flow install server:sudoers`.
+#   usage: sudo flow-k3s-upgrade v1.34.12+k3s1
+set -eu
+
+version="${1:-}"
+if ! printf '%s' "$version" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]+$'; then
+    echo "usage: flow-k3s-upgrade vX.Y.Z+k3sN" >&2
+    exit 2
+fi
+[ "$(uname -m)" = "x86_64" ] || { echo "only x86_64 is supported" >&2; exit 2; }
+
+current=$(/usr/local/bin/k3s --version | awk 'NR == 1 { print $3 }')
+if [ "$current" = "$version" ]; then
+    echo "already on $version"
+    exit 0
+fi
+newest=$(printf '%s\n%s\n' "$current" "$version" | sort -V | tail -1)
+if [ "$newest" != "$version" ]; then
+    echo "refusing to downgrade from $current to $version" >&2
+    exit 2
+fi
+minor() { printf '%s' "$1" | cut -d. -f2; }
+if [ "$(minor "$version")" -gt "$(($(minor "$current") + 1))" ]; then
+    echo "refusing to skip a minor version: $current to $version" >&2
+    exit 2
+fi
+
+if systemctl cat k3s >/dev/null 2>&1; then service=k3s; else service=k3s-agent; fi
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+base="https://github.com/k3s-io/k3s/releases/download/$(printf '%s' "$version" | sed 's/+/%2B/')"
+curl -fsSL -o "$tmp/k3s" "$base/k3s"
+curl -fsSL -o "$tmp/sums" "$base/sha256sum-amd64.txt"
+expected=$(awk '$2 == "k3s" { print $1 }' "$tmp/sums")
+[ -n "$expected" ] || { echo "no checksum for k3s in the release" >&2; exit 1; }
+echo "$expected  $tmp/k3s" | sha256sum -c - >/dev/null
+chmod 755 "$tmp/k3s"
+[ "$("$tmp/k3s" --version | awk 'NR == 1 { print $3 }')" = "$version" ] \
+    || { echo "downloaded binary is not $version" >&2; exit 1; }
+
+install -o root -g root -m 755 "$tmp/k3s" /usr/local/bin/k3s.new
+mv -f /usr/local/bin/k3s.new /usr/local/bin/k3s
+systemctl restart "$service"
+echo "$service restarted on $version (was $current)"

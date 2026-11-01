@@ -18,8 +18,10 @@ fi
 
 user=$(reg_get "$name" .user)
 sed "s/@USER@/$user/" "$SERVERS_DIR/files/sudoers-k3s" | ssh "$name" 'cat > /tmp/flow-k3s-sudoers'
+ssh "$name" 'cat > /tmp/flow-k3s-upgrade' < "$SERVERS_DIR/files/flow-k3s-upgrade"
 # visudo validates first, because a broken sudoers file can lock sudo out entirely.
 ssh -t "$name" 'sudo visudo -cf /tmp/flow-k3s-sudoers \
+    && sudo install -o root -g root -m 755 /tmp/flow-k3s-upgrade /usr/local/sbin/flow-k3s-upgrade \
     && sudo install -o root -g root -m 440 /tmp/flow-k3s-sudoers /etc/sudoers.d/flow-k3s; \
-    rc=$?; rm -f /tmp/flow-k3s-sudoers; exit $rc'
+    rc=$?; rm -f /tmp/flow-k3s-sudoers /tmp/flow-k3s-upgrade; exit $rc'
 echo "[DONE] allowlist installed on $name"

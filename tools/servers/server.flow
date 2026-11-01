@@ -55,8 +55,9 @@ executables:
     description: |
       Allow routine k3s commands to use sudo without a password on a node: `flow install server:sudoers devbox`.
 
-      Installs files/sudoers-k3s to /etc/sudoers.d/flow-k3s after validating it with visudo. Interactive:
-      opens iTerm for the sudo password. Reading k3s.yaml grants cluster admin, so this widens what anything
+      Installs files/sudoers-k3s to /etc/sudoers.d/flow-k3s after validating it with visudo, plus the
+      files/flow-k3s-upgrade helper that upgrade k3s:node uses. Safe to re-run. Interactive: opens iTerm
+      for the sudo password. Reading k3s.yaml grants cluster admin, so this widens what anything
       running as that user can do. Run install server:ssh-access first.
     exec:
       dir: //tools/servers
