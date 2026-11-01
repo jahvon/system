@@ -33,7 +33,7 @@ opening a window. Hand it to the user:
 - `flow install server:ssh-access <server>`: key login, using a key held in 1Password.
 - `flow install server:sudoers <server>`: passwordless sudo for routine k3s commands only.
 - `flow install network:tailscale <server>`: install Tailscale and apply registry settings.
-- `flow install server:desktop <server>`: Windows App, RDP firewall rules, and the RDP login.
+- `flow install server:desktop <server>`: Desktop Sharing, RDP firewall rules, and the RDP login.
 
 ## Things to know
 
@@ -42,6 +42,7 @@ opening a window. Hand it to the user:
 - SSH prompts through the 1Password agent. If a run fails with `Permission denied`, 1Password may
   be locked or waiting for approval.
 - Never accept a changed host key on the user's behalf.
+- The desktop is GNOME Desktop Sharing in `extend` mode, because devbox has no monitor. Use FreeRDP, not Windows App, which hangs after login against libfreerdp 3.32.1 (FreeRDP#13845). Keep Remote Login off.
 - Never put a password in a `sudo` command's arguments, because sudo logs full command lines. Pass it over stdin to `sudo sh -c 'IFS= read -r p; ...'`, as `bin/desktop-setup.sh` does for `grdctl`.
 - In Mochi, or through MCP on flow without the `fix/mcp-agent-ergonomics` changes, arguments split
   on spaces. Pass flag args after `--`, and run multi-word remote commands from the CLI. Failed runs

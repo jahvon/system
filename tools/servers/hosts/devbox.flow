@@ -23,7 +23,7 @@ executables:
 
   - verb: open
     name: desktop
-    description: Open devbox's Ubuntu desktop in Windows App. Asks for the RDP login in the app.
+    description: Open devbox's Ubuntu desktop with FreeRDP in iTerm, which asks for the RDP login. Leave the domain blank.
     exec:
       dir: //tools/servers
       cmd: ./bin/desktop.sh devbox

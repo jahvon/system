@@ -1,6 +1,6 @@
 #!/bin/sh
-# Prepares RDP to a server's desktop: Windows App here, then the firewall and credentials on the server.
-# Safe to re-run. Needs a terminal for sudo on both machines.
+# Prepares GNOME Desktop Sharing over RDP for a server with auto-login and no monitor. Safe to re-run.
+# Needs a terminal for sudo and the new RDP password.
 #   usage: desktop-setup.sh <server> [--here]
 set -eu
 SERVERS_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -14,10 +14,7 @@ if [ "${2:-}" != "--here" ]; then
     exit 0
 fi
 
-if [ ! -d "/Applications/Windows App.app" ]; then
-    echo "Installing Windows App. macOS may ask for your password."
-    brew install --cask windows-app
-fi
+command -v sdl-freerdp >/dev/null || brew install freerdp
 
 lan=$(yq -r '.network.lan' "$INVENTORY")
 port=$(reg_get "$name" .desktop.port)
@@ -25,20 +22,39 @@ user=$(reg_get "$name" .user)
 
 echo "Configuring $name. Enter its sudo password when asked."
 # Allow the LAN and tailnet before removing any broader rule, so access never drops.
+# Remote Login stays off: it logs credentials through pkexec and conflicts with the running session.
 ssh -t "$name" "
     sudo ufw allow from $lan to any port $port proto tcp comment 'RDP from LAN' &&
     sudo ufw allow in on tailscale0 to any port $port proto tcp comment 'RDP from tailnet' &&
     { sudo ufw delete allow $port/tcp 2>/dev/null; sudo ufw delete allow $port 2>/dev/null; true; } &&
     sudo ufw status | grep -E 'Status|$port' &&
-    if sudo grdctl --system status | grep -qE 'Username: *\(empty\)'; then
-        echo 'Choose a username and password for remote login. Save the password in 1Password.'
-        printf 'New RDP password: '; stty -echo; read -r rdp_pass; stty echo; echo
-        # Sent over stdin because sudo logs full command lines, which would record the password.
-        printf '%s\\n' \"\$rdp_pass\" | sudo sh -c 'IFS= read -r p; exec grdctl --system rdp set-credentials $user \"\$p\"'; unset rdp_pass
-    else
-        echo '[OK] RDP credentials are already set. To change them, see the servers skill.'
-    fi &&
-    sudo grdctl --system rdp enable &&
-    sudo grdctl --system status | grep -E 'Status|Port|Username'
+    { sudo grdctl --system rdp clear-credentials; sudo grdctl --system rdp disable; sudo systemctl disable --now gnome-remote-desktop; true; }
 "
+
+# Runs in the auto-login session. Screen lock off and the passwordless keyring are deliberate for a home
+# server: auto-login leaves other keyrings locked, and Desktop Sharing stores its login in the default one.
+# extend mode gives a virtual screen, because mirroring fails with no monitor attached.
+ssh -t "$name" '
+    export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus XDG_RUNTIME_DIR=/run/user/$(id -u)
+    gsettings set org.gnome.desktop.screensaver lock-enabled false
+    gsettings set org.gnome.desktop.session idle-delay 0
+    keyrings=~/.local/share/keyrings
+    if [ ! -e "$keyrings/rdp.keyring" ]; then
+        cp -p "$keyrings/default" "$keyrings/default.bak-rdp" 2>/dev/null
+        (umask 077; printf "[keyring]\ndisplay-name=rdp\nctime=0\nmtime=0\nlock-on-idle=false\nlock-after=false\n" > "$keyrings/rdp.keyring")
+        printf rdp > "$keyrings/default"
+        systemctl --user restart gnome-keyring-daemon.service
+        sleep 2
+    fi
+    gsettings set org.gnome.desktop.remote-desktop.rdp screen-share-mode extend
+    printf "New RDP password (Return keeps the current one): "; stty -echo; read -r pw; stty echo; echo
+    [ -z "$pw" ] || grdctl rdp set-credentials '"$user"' "$pw"
+    unset pw
+    chmod 600 ~/.local/share/gnome-remote-desktop/certificates/rdp-tls.key 2>/dev/null
+    grdctl rdp disable-view-only
+    grdctl rdp enable
+    systemctl --user enable --now gnome-remote-desktop
+    systemctl --user restart gnome-remote-desktop
+    grdctl status | grep -E "Status|Port"
+'
 echo "[DONE] Now run: flow open server:desktop $name"

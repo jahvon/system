@@ -118,8 +118,8 @@ executables:
   - verb: open
     name: desktop
     description: |
-      Open a server's desktop in Windows App over RDP: `flow open server:desktop devbox`.
-      Asks for the RDP login in the app. Agents get the connection file's path instead of a window.
+      Open a server's desktop over RDP with FreeRDP: `flow open server:desktop devbox`. Interactive: opens
+      iTerm to ask for the RDP login (leave the domain blank), and agents get the command to hand to the user.
     exec:
       dir: //tools/servers
       args:
@@ -131,9 +131,9 @@ executables:
   - verb: install
     name: desktop
     description: |
-      Set up RDP to a server: `flow install server:desktop devbox`. Installs Windows App here, limits the RDP
-      port to the LAN and tailnet, and sets a login if none exists. Safe to re-run. Interactive: opens iTerm
-      for sudo on both machines, and agents get the command to hand to the user.
+      Set up GNOME Desktop Sharing on a server: `flow install server:desktop devbox`. Installs FreeRDP here,
+      limits the RDP port to the LAN and tailnet, turns off the screen lock, adds a passwordless keyring, and
+      can set a new login. Weakens local security on purpose, for a home server. Safe to re-run. Interactive.
     exec:
       dir: //tools/servers
       args:
