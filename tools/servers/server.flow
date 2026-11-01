@@ -221,6 +221,20 @@ executables:
           default: ""
       cmd: ./bin/claude.sh stop "$SERVER" "$WORKSPACE"
 
+  - verb: install
+    name: secrets
+    description: |
+      Prepare a server to read flow secrets from 1Password: `flow install server:secrets devbox`. Installs op after
+      verifying its signature, copies this machine's vault references (no secret values), and loads the token file
+      in every shell. Changes the server. Safe to re-run. The user creates the token separately; see the servers skill.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/secrets.sh "$SERVER"
+
   - verb: show
     name: inventory
     tags: [read-only]
