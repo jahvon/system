@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: network
+tags: [network, remote]
+description: Keep the home network and tailnet matching the server registry
+
+executables:
+  - verb: check
+    name: drift
+    tags: [read-only]
+    description: |
+      Compare the registry with live SSH aliases, Kubernetes nodes, Pi-hole, tailnet routers, and hardcoded IPs.
+      Read-only. Prints [OK], [WARN], and [FAIL] lines; exits 1 on any [FAIL].
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/network-drift.sh
+
+  - verb: install
+    name: tailscale
+    description: |
+      Install Tailscale on a server and apply its registry settings: `flow install network:tailscale devbox`.
+
+      Routers advertise the LAN, and the exit node also offers itself as one. Safe to re-run; it resets
+      settings to match the registry. Interactive: opens iTerm for the sudo password and sign-in link, and
+      agents get the command to hand to the user. New routes then need approval in the Tailscale admin console.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/tailscale.sh "$SERVER"
