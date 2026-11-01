@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: server
+tags: [server, remote]
+description: Registry of machines and clusters, and how this machine connects to them
+
+executables:
+  - verb: show
+    name: list
+    aliases: [servers]
+    description: |
+      Print every registered machine as a table: name, kind, address, user, Kubernetes node, aliases.
+      Read-only and offline. Source: tools/servers/inventory.yaml.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/list.sh
+
+  - verb: show
+    name: inventory
+    description: Print the whole registry (servers, clusters, network) as JSON for scripts and agents. Read-only and offline.
+    exec:
+      dir: //tools/servers
+      cmd: yq -o=json . inventory.yaml
+
+  - verb: apply
+    name: ssh-config
+    description: |
+      Regenerate ~/.ssh/config.d/servers.conf from the registry, so `ssh <server>` works by name or alias.
+
+      Changes this machine only. Adds an Include to ~/.ssh/config the first time, after backing it up.
+      Run after editing inventory.yaml.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/ssh-config.sh
+
+  - verb: install
+    name: ssh-access
+    description: |
+      Set up passwordless SSH to a server: `flow install server:ssh-access devbox`.
+
+      Creates a "homelab ssh" key in 1Password if missing, writes its public half to ~/.ssh/homelab.pub,
+      and authorizes it on the server. Interactive: opens iTerm for 1Password approval and the server's
+      password, and agents get the command to hand to the user. Safe to re-run.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/ssh-access.sh "$SERVER"
+
+  - verb: install
+    name: sudoers
+    description: |
+      Allow routine k3s commands to use sudo without a password on a node: `flow install server:sudoers devbox`.
+
+      Installs files/sudoers-k3s to /etc/sudoers.d/flow-k3s after validating it with visudo. Interactive:
+      opens iTerm for the sudo password. Reading k3s.yaml grants cluster admin, so this widens what anything
+      running as that user can do. Run install server:ssh-access first.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/sudoers.sh "$SERVER"

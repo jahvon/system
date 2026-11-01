@@ -1,0 +1,3 @@
+# Installed by `flow install server:sudoers`. Routine k3s operations that run without a terminal.
+# Destructive or one-off commands, such as an etcd restore, deliberately still ask for a password.
+@USER@ ALL=(root) NOPASSWD: /usr/bin/systemctl restart k3s, /usr/bin/systemctl restart k3s-agent, /usr/bin/systemctl reboot, /usr/bin/cat /etc/rancher/k3s/k3s.yaml, /usr/bin/cat /var/lib/rancher/k3s/server/node-token, /usr/local/bin/k3s etcd-snapshot save

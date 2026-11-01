@@ -1,0 +1,58 @@
+# Source of truth for machines, clusters, and the home network. Holds no secrets.
+# `kind: server` machines get an SSH alias and remote operations; `appliance` entries are records only.
+# After editing, run `flow apply server:ssh-config`.
+
+network:
+  lan: 192.168.68.0/24
+  podCidr: 10.42.0.0/16
+  dns:
+    provider: pihole
+    server: devbox
+  tailscale:
+    routers: [devbox, workbox]
+    exitNode: devbox
+
+clusters:
+  home:
+    context: home-k3s
+    controlPlane: devbox
+
+# Release workspaces: servers register these from git and track `ref`, using their public executables.
+# A server's `sessions` use an editable `checkout` instead, because flow manages its git clones.
+workspaces:
+  system:
+    git: git@github.com:jahvon/system.git
+    ref: main
+  agent-framework:
+    git: git@github.com:jahvon/agent-framework.git
+    ref: main
+  kube:
+    git: git@github.com:jahvon/kube.git
+    ref: main
+
+servers:
+  devbox:
+    aliases: [server01]
+    kind: server
+    address: 192.168.68.137
+    user: jahvon
+    k8sNode: devbox
+    desktop:
+      protocol: rdp
+      port: 3389
+    sessions:
+      - workspace: kube
+        checkout: ~/workspaces/github.com/jahvon/kube
+    workspaces: [system, agent-framework, kube]
+  workbox:
+    kind: server
+    address: 192.168.68.136
+    user: jahvon
+    k8sNode: workbox
+  nas:
+    kind: appliance
+    address: 192.168.68.135
+    notes: Synology NFS backing cluster storage
+  hubitat:
+    kind: appliance
+    address: 192.168.68.109
