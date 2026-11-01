@@ -21,5 +21,5 @@ sed "s/@USER@/$user/" "$SERVERS_DIR/files/sudoers-k3s" | ssh "$name" 'cat > /tmp
 # visudo validates first, because a broken sudoers file can lock sudo out entirely.
 ssh -t "$name" 'sudo visudo -cf /tmp/flow-k3s-sudoers \
     && sudo install -o root -g root -m 440 /tmp/flow-k3s-sudoers /etc/sudoers.d/flow-k3s; \
-    status=$?; rm -f /tmp/flow-k3s-sudoers; exit $status'
+    rc=$?; rm -f /tmp/flow-k3s-sudoers; exit $rc'
 echo "[DONE] allowlist installed on $name"
