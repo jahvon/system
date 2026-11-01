@@ -235,6 +235,20 @@ executables:
           required: true
       cmd: ./bin/secrets.sh "$SERVER"
 
+  - verb: install
+    name: ssh-hardening
+    description: |
+      Turn off SSH password login on a server: `flow install server:ssh-hardening devbox`. Schedules an automatic
+      rollback, proves from this machine that key login works and passwords are refused, then cancels the rollback.
+      Interactive: opens iTerm for the sudo password. Safe to re-run. Run install server:ssh-access first.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/ssh-harden.sh "$SERVER"
+
   - verb: show
     name: inventory
     tags: [read-only]

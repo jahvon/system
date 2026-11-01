@@ -34,6 +34,7 @@ opening a window. Hand it to the user:
 - `flow install server:ssh-access <server>`: key login, using a key held in 1Password.
 - `flow install server:sudoers <server>`: passwordless sudo for routine k3s commands only.
 - `flow install network:tailscale <server>`: install Tailscale and apply registry settings.
+- `flow install server:ssh-hardening <server>`: SSH keys only, with an automatic rollback if the test fails.
 - `flow install server:desktop <server>`: Desktop Sharing, RDP firewall rules, and the RDP login.
 - Creating a 1Password service account token for `flow install server:secrets <server>`. It only reaches the server if creation succeeds, and never appears in a terminal or transcript: `T=$(op service-account create "<server>" --vault flow:read_items --account my.1password.com --raw) && printf '%s' "$T" | ssh <server> 'umask 077; cat > ~/.config/op/service-account-token'; unset T`. Never print or read that token.
 
