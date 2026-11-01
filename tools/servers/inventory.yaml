@@ -51,6 +51,7 @@ servers:
     address: 192.168.68.136
     user: jahvon
     k8sNode: workbox
+    workspaces: [system]
   nas:
     kind: appliance
     address: 192.168.68.135

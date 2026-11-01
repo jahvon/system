@@ -62,6 +62,59 @@ executables:
           required: true
       cmd: ./bin/command.sh "$SERVER" "$REMOTE_COMMAND"
 
+  - verb: update
+    name: flow
+    description: |
+      Install this machine's flow version on a server, verifying the release checksum:
+      `flow update server:flow devbox`. Changes the server. Safe to re-run.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/flow-upgrade.sh "$SERVER"
+
+  - verb: show
+    name: workspaces
+    tags: [read-only]
+    description: List the flow workspaces registered on a server, with paths. Read-only.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/workspaces.sh show "$SERVER"
+
+  - verb: check
+    name: workspaces
+    tags: [read-only]
+    description: |
+      Compare a server's registered workspaces with the registry. Read-only. Prints [OK], [MISSING], and
+      [EXTRA] lines; exits 1 if any are missing.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/workspaces.sh check "$SERVER"
+
+  - verb: update
+    name: workspaces
+    description: |
+      Register a server's missing workspaces from git and refresh existing ones:
+      `flow update server:workspaces devbox`. Changes the server, but never pulls over local changes.
+      Needs flow 2.x; run update server:flow first.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/workspaces.sh update "$SERVER"
+
   - verb: show
     name: inventory
     tags: [read-only]
