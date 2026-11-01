@@ -1,0 +1,109 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: pihole
+tags: [network, dns, pihole]
+description: Manage Pi-hole, which runs in Docker on the DNS server named in the server registry, outside k3s
+
+executables:
+  - verb: get
+    name: status
+    aliases: [check]
+    tags: [read-only]
+    description: Show whether Pi-hole is listening and blocking. Read-only.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh status
+
+  - verb: get
+    name: summary
+    tags: [read-only]
+    description: Show today's queries, blocked percentage, blocklist size, and active clients. Read-only.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh summary
+
+  - verb: get
+    name: top-queries
+    tags: [read-only]
+    description: List the 15 most requested domains with counts. Read-only.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh top-queries
+
+  - verb: get
+    name: top-blocked
+    tags: [read-only]
+    description: List the 15 most blocked domains with counts. Read-only.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh top-blocked
+
+  - verb: get
+    name: clients
+    tags: [read-only]
+    description: List the 15 devices making the most DNS queries. Read-only.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh clients
+
+  - verb: pause
+    name: blocking
+    aliases: [pihole]
+    description: |
+      Temporarily disable blocking for a number of seconds (default 300), then it resumes on its own:
+      `flow pause pihole:blocking 60`. DNS keeps working.
+    exec:
+      dir: //tools/pihole
+      args:
+        - pos: 1
+          envKey: DURATION
+          default: "300"
+      cmd: ./pihole.sh pause "$DURATION"
+
+  - verb: enable
+    name: blocking
+    aliases: [pihole]
+    description: Re-enable blocking immediately.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh enable
+
+  - verb: flush
+    name: logs
+    description: DESTRUCTIVE. Delete Pi-hole's stored query history. Asks for confirmation.
+    serial:
+      execs:
+        - cmd: echo "This permanently deletes Pi-hole's query history."
+          reviewRequired: true
+        - cmd: '"$FLOW_WORKSPACE_PATH/tools/pihole/pihole.sh" flush'
+
+  - verb: update
+    name: gravity
+    description: Refresh Pi-hole's blocklists from their sources. Takes about a minute; DNS keeps working.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh gravity
+
+  - verb: apply
+    name: config
+    description: |
+      Deploy tools/pihole/docker-compose.yml to the DNS server, updating Pi-hole to the pinned image.
+
+      Saves a settings backup and the previous compose file to ~/workspaces/pihole/backups on the server
+      first, then waits for a healthy container. DNS is briefly unavailable during the restart.
+    exec:
+      dir: //tools/pihole
+      cmd: ./pihole.sh apply
+
+  - verb: open
+    name: admin
+    description: Open the Pi-hole admin interface in a browser.
+    launch:
+      uri: "http://pi.hole/admin"
+
+  - verb: open
+    name: query-log
+    description: Open the Pi-hole query log in a browser.
+    launch:
+      uri: "http://pi.hole/admin/queries"

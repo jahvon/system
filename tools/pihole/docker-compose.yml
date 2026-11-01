@@ -1,0 +1,22 @@
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:2026.10.1
+    hostname: pihole
+    # Host networking so devices on the LAN and tailnet can reach DNS directly.
+    network_mode: host
+    environment:
+      TZ: America/New_York
+      # Tailnet clients reach Pi-hole from Tailscale addresses, which LOCAL mode rejects as non-local.
+      # Port 53 must not be forwarded from the internet.
+      FTLCONF_dns_listeningMode: ALL
+    volumes:
+      - /var/lib/pihole/etc-pihole:/etc/pihole
+      - /var/lib/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+      - /var/lib/pihole/var-log:/var/log/pihole
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1

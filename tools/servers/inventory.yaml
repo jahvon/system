@@ -8,6 +8,7 @@ network:
   dns:
     provider: pihole
     server: devbox
+    deployment: tools/pihole/docker-compose.yml
   tailscale:
     routers: [devbox, workbox]
     exitNode: devbox
