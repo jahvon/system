@@ -12,7 +12,7 @@ if [ -z "$(reg_get "$name" .k8sNode)" ]; then
 fi
 
 if [ "${2:-}" != "--here" ]; then
-    open_interactive "'$SERVERS_DIR/bin/sudoers.sh' $name --here"
+    open_interactive "$SERVERS_DIR/bin/sudoers.sh $name --here"
     exit 0
 fi
 

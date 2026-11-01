@@ -9,7 +9,7 @@ SERVERS_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 name=$(reg_require_server "${1:-}")
 
 if [ "${2:-}" != "--here" ]; then
-    open_interactive "'$SERVERS_DIR/bin/ssh-access.sh' $name --here"
+    open_interactive "$SERVERS_DIR/bin/ssh-access.sh $name --here"
     exit 0
 fi
 
