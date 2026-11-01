@@ -9,15 +9,62 @@ executables:
   - verb: show
     name: list
     aliases: [servers]
+    tags: [read-only]
     description: |
-      Print every registered machine as a table: name, kind, address, user, Kubernetes node, aliases.
-      Read-only and offline. Source: tools/servers/inventory.yaml.
+      Print every registered machine as a table: name, kind, address, user, Kubernetes node, aliases, and
+      the last result of check server:status. Read-only and offline. Source: tools/servers/inventory.yaml.
     exec:
       dir: //tools/servers
       cmd: ./bin/list.sh
 
+  - verb: check
+    name: status
+    tags: [read-only]
+    description: |
+      Show a server's uptime, load, disk, pending reboot, tool versions, tmux sessions, and workspaces:
+      `flow check server:status devbox`. Read-only on the server; saves the result to flow's data store
+      as server.<name>.status. Exits 1 if unreachable.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/status.sh "$SERVER"
+
+  - verb: connect
+    name: shell
+    description: |
+      Open a shell on a server in iTerm: `flow connect server:shell devbox`. Agents get the command
+      printed instead, and should use run server:command for remote work.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/shell.sh "$SERVER"
+
+  - verb: run
+    name: command
+    description: |
+      Run one non-interactive command on a server and return its output and exit code:
+      `flow run server:command devbox 'uname -a'`. Can change the server, depending on the command.
+      For k3s node work, use the k3s: executables in the kube workspace instead.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+        - pos: 2
+          envKey: REMOTE_COMMAND
+          required: true
+      cmd: ./bin/command.sh "$SERVER" "$REMOTE_COMMAND"
+
   - verb: show
     name: inventory
+    tags: [read-only]
     description: Print the whole registry (servers, clusters, network) as JSON for scripts and agents. Read-only and offline.
     exec:
       dir: //tools/servers

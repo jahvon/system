@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: devbox
+tags: [server, remote]
+description: One-click actions for devbox (alias server01), the k3s control plane and Ubuntu desktop
+
+executables:
+  - verb: check
+    name: status
+    tags: [read-only]
+    description: Show devbox's uptime, load, disk, pending reboot, tool versions, tmux sessions, and workspaces. Read-only.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/status.sh devbox
+
+  - verb: connect
+    name: shell
+    description: Open a shell on devbox in iTerm. Agents get the command printed instead.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/shell.sh devbox
