@@ -20,3 +20,10 @@ executables:
     exec:
       dir: //tools/servers
       cmd: ./bin/shell.sh devbox
+
+  - verb: open
+    name: desktop
+    description: Open devbox's Ubuntu desktop in Windows App. Asks for the RDP login in the app.
+    exec:
+      dir: //tools/servers
+      cmd: ./bin/desktop.sh devbox

@@ -115,6 +115,33 @@ executables:
           required: true
       cmd: ./bin/workspaces.sh update "$SERVER"
 
+  - verb: open
+    name: desktop
+    description: |
+      Open a server's desktop in Windows App over RDP: `flow open server:desktop devbox`.
+      Asks for the RDP login in the app. Agents get the connection file's path instead of a window.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/desktop.sh "$SERVER"
+
+  - verb: install
+    name: desktop
+    description: |
+      Set up RDP to a server: `flow install server:desktop devbox`. Installs Windows App here, limits the RDP
+      port to the LAN and tailnet, and sets a login if none exists. Safe to re-run. Interactive: opens iTerm
+      for sudo on both machines, and agents get the command to hand to the user.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: true
+      cmd: ./bin/desktop-setup.sh "$SERVER"
+
   - verb: show
     name: inventory
     tags: [read-only]

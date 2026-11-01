@@ -46,7 +46,7 @@ case "$action" in
             printf '%s\n' "$current" | grep -qxF "$ws" && continue
             git=$(W="$ws" yq -r '.workspaces[env(W)].git' "$INVENTORY")
             ref=$(W="$ws" yq -r '.workspaces[env(W)].ref' "$INVENTORY")
-            remote "flow workspace add '$ws' '$git' --branch '$ref'" >/dev/null
+            remote "GIT_TERMINAL_PROMPT=0 flow workspace add '$ws' '$git' --branch '$ref' 2>/dev/null" >/dev/null
             echo "registered $ws from $git ($ref)"
         done
         # The system checkout is a plain clone, so refuse to pull over local changes.

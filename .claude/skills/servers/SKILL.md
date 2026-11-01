@@ -18,6 +18,7 @@ Outside the system repo, qualify refs as `system/…` (`flow show system/server:
 | Run a command on a server | `flow run server:command devbox 'uname -a'` |
 | Open a shell (humans) | `flow connect server:shell devbox` |
 | One-click equivalents | `flow check devbox:status`, `flow connect devbox:shell`, same for `workbox` |
+| Open the Ubuntu desktop | `flow open devbox:desktop` |
 | Compare registry with reality | `flow check network:drift` |
 | Pi-hole stats, pause, blocklists | `flow get pihole:summary`, `flow pause pihole:blocking 60`, `flow update pihole:gravity` |
 | Update Pi-hole or its settings | Edit `tools/pihole/docker-compose.yml`, then `flow apply pihole:config` |
@@ -32,6 +33,7 @@ opening a window. Hand it to the user:
 - `flow install server:ssh-access <server>`: key login, using a key held in 1Password.
 - `flow install server:sudoers <server>`: passwordless sudo for routine k3s commands only.
 - `flow install network:tailscale <server>`: install Tailscale and apply registry settings.
+- `flow install server:desktop <server>`: Windows App, RDP firewall rules, and the RDP login.
 
 ## Things to know
 
