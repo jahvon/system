@@ -64,6 +64,11 @@ else
             warn "router $name is online, but $lan is unapproved or it is the standby route"
         fi
     done
+    dns_ts=$(printf '%s' "$status" | jq -r --arg n "$dns_server" '[.Peer[] | select(.HostName == $n) | .TailscaleIPs[0]][0] // empty')
+    if [ -n "$dns_ts" ]; then
+        [ -n "$(dig +short +time=2 +tries=1 "@$dns_ts" pi.hole 2>/dev/null)" ] && ok "Pi-hole answers tailnet clients at $dns_ts" \
+            || fail "Pi-hole does not answer tailnet clients at $dns_ts; check dns.listeningMode"
+    fi
     primary=$(printf '%s' "$status" | jq -r --arg r "$lan" '[.Peer[] | select((.PrimaryRoutes // []) | index($r)) | .HostName][0] // "none"')
     printf '%s' "$status" | jq -e '[.Peer[] | select(.HostName | startswith("ts-pod-cidrs"))] | length > 0' >/dev/null \
         && warn "the k3s connector ts-pod-cidrs is still on the tailnet"
