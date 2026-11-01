@@ -146,8 +146,9 @@ executables:
     name: claude
     description: |
       Prepare a server for Claude sessions: `flow install server:claude devbox [workspace]`. Clones the session's
-      checkout, sets the permission mode to default, installs agent-framework and system skills. Changes the
-      server. Safe to re-run. Needs Claude Code already logged in there.
+      checkout, sets the permission mode to default, updates agent-framework and system skills, trusts every repo
+      under ~/workspaces, approves the flow MCP server, and enables a boot service. Restarts a running session.
+      Changes the server. Safe to re-run. Remote Control needs a full /login there.
     exec:
       dir: //tools/servers
       args:

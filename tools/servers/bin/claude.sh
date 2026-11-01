@@ -1,6 +1,7 @@
 #!/bin/sh
 # Sets up and runs persistent Claude Code sessions on a server, from the sessions in the registry.
-# Each runs in tmux with Remote Control on, so it survives disconnects and is reachable from claude.ai.
+# Each is a systemd user service running tmux with Remote Control on, so it starts at boot, survives
+# disconnects, and is reachable from claude.ai.
 #   usage: claude.sh <install|start|status|connect|stop> <server> [workspace]
 set -eu
 SERVERS_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -20,12 +21,12 @@ session="claude-$workspace"
 
 # Remote snippets run under sh, so zsh's special variables don't apply.
 remote() { ssh -o BatchMode=yes -o ConnectTimeout=8 "$name" 'sh -s' -- "$@"; }
-preamble='set -eu; export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"'
+preamble='set -eu; export PATH="$HOME/.local/bin:/usr/local/bin:$PATH" XDG_RUNTIME_DIR="/run/user/$(id -u)"'
 
 case "$action" in
     install)
         git_url=$(W="$workspace" yq -r '.workspaces[env(W)].git' "$INVENTORY")
-        remote "$(checkout_for "$workspace")" "$git_url" <<EOF
+        remote "$(checkout_for "$workspace")" "$git_url" "$session" "$workspace" <<EOF
 $preamble
 checkout=\$(printf '%s' "\$1" | sed "s|^~|\$HOME|")
 if [ -d "\$checkout/.git" ]; then
@@ -44,13 +45,15 @@ overlay="\$HOME/.claude/settings.overlay.json"
 [ -f "\$overlay" ] || echo '{}' > "\$overlay"
 tmp=\$(mktemp)
 jq '.permissions.defaultMode = "default"
-    | .permissions.deny = (((.permissions.deny // []) + ["mcp__flow__run_command", "mcp__flow__run_python", "mcp__flow__run_executable"]) | unique)' \
+    | .permissions.deny = (((.permissions.deny // []) + ["mcp__flow__run_command", "mcp__flow__run_python", "mcp__flow__run_executable"]) | unique)
+    | .enabledMcpjsonServers = (((.enabledMcpjsonServers // []) + ["flow"]) | unique)' \
     "\$overlay" > "\$tmp" && mv "\$tmp" "\$overlay"
-echo "[DONE] permission mode: default, ad hoc flow commands denied"
+echo "[DONE] permission mode: default, ad hoc flow commands denied, flow MCP approved"
 
 af=\$(flow workspace list -o json | jq -r '.workspaces[] | select(.name == "agent-framework") | .path')
 if [ -n "\$af" ]; then
-    cd "\$af" && flow install agent:global 2>&1 | tail -2
+    (cd "\$af" && flow update agent:global 2>&1 | tail -2)
+    echo "[DONE] agent-framework at \$(git -C "\$af" log --oneline -1 | cut -c1-60)"
 else
     echo "[WARN] agent-framework isn't registered; run flow update server:workspaces"
 fi
@@ -63,26 +66,58 @@ done
 echo "[DONE] linked system skills"
 
 [ -f "\$HOME/.tmux.conf" ] || printf 'set -g mouse on\nset -g history-limit 50000\n' > "\$HOME/.tmux.conf"
-jq -c '{defaultMode: .permissions.defaultMode, deny: .permissions.deny, attribution: .attribution}' "\$HOME/.claude/settings.json"
+
+# Trust is per project and isn't inherited from a parent, so mark every repo in the workspace directory.
+# The user chose to trust everything there. Stop the session first, because Claude rewrites this file.
+systemctl --user stop "\$3.service" 2>/dev/null || true
+tmux kill-session -t "\$3" 2>/dev/null || true
+sleep 1
+cp -p "\$HOME/.claude.json" "\$HOME/.claude.json.bak-trust"
+find "\$HOME/workspaces" -maxdepth 6 -type d -name .git -prune 2>/dev/null | sed 's|/.git\$||' | jq -R . | jq -s . > "\$tmp"
+jq --slurpfile dirs "\$tmp" 'reduce \$dirs[0][] as \$d (.; .projects[\$d].hasTrustDialogAccepted = true)' "\$HOME/.claude.json" > "\$tmp.new"
+mv "\$tmp.new" "\$HOME/.claude.json"
+chmod 600 "\$HOME/.claude.json"
+echo "[DONE] trusted \$(jq length "\$tmp") repos under ~/workspaces"
+rm -f "\$tmp"
+
+# Restarts Claude if it exits, including at boot before the network is ready.
+mkdir -p "\$HOME/.config/systemd/user"
+cat > "\$HOME/.config/systemd/user/\$3.service" <<UNIT
+[Unit]
+Description=Claude Code session for \$4, with Remote Control
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=PATH=\$HOME/.local/bin:\$HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/tmux new-session -d -s \$3 -c \$checkout "zsh -lc 'while true; do claude --continue --remote-control \$4 || claude --remote-control \$4; sleep 5; done'"
+ExecStop=/usr/bin/tmux kill-session -t \$3
+
+[Install]
+WantedBy=default.target
+UNIT
+systemctl --user daemon-reload
+systemctl --user enable "\$3.service" 2>&1 | tail -1
+echo "[DONE] \$3 starts at boot (linger: \$(loginctl show-user "\$(id -un)" -p Linger --value))"
+jq -c '{defaultMode: .permissions.defaultMode, attribution: .attribution}' "\$HOME/.claude/settings.json"
 EOF
         ;;
     start)
-        remote "$session" "$(checkout_for "$workspace")" "$workspace" <<EOF
+        remote "$session" <<EOF
 $preamble
-checkout=\$(printf '%s' "\$2" | sed "s|^~|\$HOME|")
-[ -d "\$checkout/.git" ] || { echo "[ERROR] no checkout at \$checkout. Run: flow install server:claude" >&2; exit 1; }
-if tmux has-session -t "\$1" 2>/dev/null; then
+systemctl --user cat "\$1.service" >/dev/null 2>&1 || { echo "[ERROR] \$1 isn't installed. Run: flow install server:claude" >&2; exit 1; }
+if systemctl --user is-active --quiet "\$1.service"; then
     echo "[OK] \$1 is already running"
-    exit 0
+else
+    systemctl --user start "\$1.service"
+    echo "[DONE] started \$1"
 fi
-# Resumes the last conversation when there is one. The shell afterward keeps the session open to inspect.
-tmux new-session -d -s "\$1" -c "\$checkout" "zsh -lc 'claude --continue --remote-control \$3 || claude --remote-control \$3; exec zsh -l'"
-echo "[DONE] started \$1 in \$checkout"
 EOF
         ;;
     status)
         remote "$session" <<EOF
 $preamble
+echo "service: \$(systemctl --user is-active "\$1.service" 2>&1 || true) enabled: \$(systemctl --user is-enabled "\$1.service" 2>&1 || true)"
 if ! tmux has-session -t "\$1" 2>/dev/null; then
     echo "\$1 is not running"
     exit 1
@@ -97,11 +132,11 @@ EOF
     stop)
         remote "$session" <<EOF
 $preamble
-tmux kill-session -t "\$1" 2>/dev/null && echo "[DONE] stopped \$1" || echo "\$1 was not running"
+systemctl --user stop "\$1.service" && echo "[DONE] stopped \$1. It starts again at the next boot."
 EOF
         ;;
     *)
-        sed -n 4p "$0" >&2
+        sed -n 5p "$0" >&2
         exit 2
         ;;
 esac
