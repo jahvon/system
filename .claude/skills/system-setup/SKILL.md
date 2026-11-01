@@ -38,6 +38,8 @@ both upgrade every Homebrew package, and `update system` asks for a sudo passwor
 the flow binary. Treat `bootstrap` as a first-run operation: it is safe to re-run, but it is
 heavy.
 
+For remote machines, SSH, Tailscale, and network state, use the `servers` skill.
+
 ## Where changes go
 
 - **Shell config:** edit `tools/dotfiles/templates/` (`zshrc`, `zshenv`, `zprofile`,

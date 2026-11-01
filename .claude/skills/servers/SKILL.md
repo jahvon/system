@@ -1,0 +1,44 @@
+---
+name: servers
+description: Connect to and operate Jahvon's remote machines (devbox, also called server01, and workbox) and the home network through the `system` flow workspace — SSH access, shells, remote commands, health checks, Tailscale, and network drift. Use whenever the user mentions a server, node, devbox, workbox, server01, SSH, Tailscale, or home network state, or asks to run something on a remote machine, even if they don't mention flow or the registry.
+allowed-tools: mcp__flow__execute, mcp__flow__get_executable, mcp__flow__list_executables, mcp__flow__get_execution_logs, Bash(flow:*), Read
+---
+
+# Servers
+
+`tools/servers/inventory.yaml` in the `system` workspace is the source of truth for machines,
+clusters, and the network. Change facts there, then run `flow apply server:ssh-config`.
+
+Outside the system repo, qualify refs as `system/…` (`flow show system/server:list`).
+
+| Goal | Run |
+|------|-----|
+| See every machine | `flow show server:list`, or `show server:inventory` for JSON |
+| Check a server's health | `flow check server:status devbox` |
+| Run a command on a server | `flow run server:command devbox 'uname -a'` |
+| Open a shell (humans) | `flow connect server:shell devbox` |
+| One-click equivalents | `flow check devbox:status`, `flow connect devbox:shell`, same for `workbox` |
+| Compare registry with reality | `flow check network:drift` |
+
+Use `k3s:` executables in the `kube` workspace for k3s node work, not `run server:command`.
+
+## Steps only the user can do
+
+These need a password or browser, so running them as an agent prints the command instead of
+opening a window. Hand it to the user:
+
+- `flow install server:ssh-access <server>`: key login, using a key held in 1Password.
+- `flow install server:sudoers <server>`: passwordless sudo for routine k3s commands only.
+- `flow install network:tailscale <server>`: install Tailscale and apply registry settings.
+
+## Things to know
+
+- Pi-hole runs in Docker on devbox, outside k3s. Tailscale runs on the hosts, so remote access
+  survives a k3s failure.
+- SSH prompts through the 1Password agent. If a run fails with `Permission denied`, 1Password may
+  be locked or waiting for approval.
+- Never accept a changed host key on the user's behalf.
+- In Mochi, or through MCP on flow without the `fix/mcp-agent-ergonomics` changes, arguments split
+  on spaces. Pass flag args after `--`, and run multi-word remote commands from the CLI. Failed runs
+  may also report `isError: false`, so confirm with `get_execution_logs`.
+- `flow check server:status` saves its result to flow's data store as `server.<name>.status`.
