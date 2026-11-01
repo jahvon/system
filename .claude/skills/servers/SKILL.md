@@ -48,5 +48,5 @@ opening a window. Hand it to the user:
 - In Mochi, or through MCP on flow without the `fix/mcp-agent-ergonomics` changes, arguments split
   on spaces. Pass flag args after `--`, and run multi-word remote commands from the CLI. Failed runs
   may also report `isError: false`, so confirm with `get_execution_logs`.
-- Claude sessions run in tmux as `claude-<workspace>` with Remote Control on, in the `checkout` the registry names. Never answer a session's trust or permission prompts on the user's behalf. To drive one non-interactively, run `claude -p -c` in its checkout.
+- Claude sessions run in tmux as `claude-<workspace>` with Remote Control on, in the `checkout` the registry names. Never answer a session's trust or permission prompts on the user's behalf. To drive one non-interactively, run `claude -p -c` in its checkout. These sessions deny flow's `run_command`, `run_python`, and `run_executable`; use `execute` with a defined executable.
 - `flow check server:status` saves its result to flow's data store as `server.<name>.status`.

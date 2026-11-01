@@ -38,12 +38,15 @@ else
     echo "[DONE] cloned \$2"
 fi
 
-# devbox runs the control plane, so sessions ask before risky actions rather than using auto mode.
+# Servers run the cluster, so sessions ask before risky actions rather than using auto mode. Ad hoc flow
+# commands are denied because project settings pre-approve them, which would bypass those prompts.
 overlay="\$HOME/.claude/settings.overlay.json"
 [ -f "\$overlay" ] || echo '{}' > "\$overlay"
 tmp=\$(mktemp)
-jq '.permissions.defaultMode = "default"' "\$overlay" > "\$tmp" && mv "\$tmp" "\$overlay"
-echo "[DONE] permission mode: default"
+jq '.permissions.defaultMode = "default"
+    | .permissions.deny = (((.permissions.deny // []) + ["mcp__flow__run_command", "mcp__flow__run_python", "mcp__flow__run_executable"]) | unique)' \
+    "\$overlay" > "\$tmp" && mv "\$tmp" "\$overlay"
+echo "[DONE] permission mode: default, ad hoc flow commands denied"
 
 af=\$(flow workspace list -o json | jq -r '.workspaces[] | select(.name == "agent-framework") | .path')
 if [ -n "\$af" ]; then
@@ -60,7 +63,7 @@ done
 echo "[DONE] linked system skills"
 
 [ -f "\$HOME/.tmux.conf" ] || printf 'set -g mouse on\nset -g history-limit 50000\n' > "\$HOME/.tmux.conf"
-jq -c '{defaultMode: .permissions.defaultMode, attribution: .attribution}' "\$HOME/.claude/settings.json"
+jq -c '{defaultMode: .permissions.defaultMode, deny: .permissions.deny, attribution: .attribution}' "\$HOME/.claude/settings.json"
 EOF
         ;;
     start)
