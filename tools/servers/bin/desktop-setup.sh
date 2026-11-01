@@ -1,5 +1,6 @@
 #!/bin/sh
 # Prepares GNOME Desktop Sharing over RDP for a server with auto-login and no monitor. Safe to re-run.
+# Adds no firewall rules: ufw is off on k3s nodes, so the RDP port is reachable from the LAN and tailnet.
 # Needs a terminal for sudo and the new RDP password.
 #   usage: desktop-setup.sh <server> [--here]
 set -eu
@@ -16,18 +17,11 @@ fi
 
 command -v sdl-freerdp >/dev/null || brew install freerdp
 
-lan=$(yq -r '.network.lan' "$INVENTORY")
-port=$(reg_get "$name" .desktop.port)
 user=$(reg_get "$name" .user)
 
 echo "Configuring $name. Enter its sudo password when asked."
-# Allow the LAN and tailnet before removing any broader rule, so access never drops.
 # Remote Login stays off: it logs credentials through pkexec and conflicts with the running session.
 ssh -t "$name" "
-    sudo ufw allow from $lan to any port $port proto tcp comment 'RDP from LAN' &&
-    sudo ufw allow in on tailscale0 to any port $port proto tcp comment 'RDP from tailnet' &&
-    { sudo ufw delete allow $port/tcp 2>/dev/null; sudo ufw delete allow $port 2>/dev/null; true; } &&
-    sudo ufw status | grep -E 'Status|$port' &&
     { sudo grdctl --system rdp clear-credentials; sudo grdctl --system rdp disable; sudo systemctl disable --now gnome-remote-desktop; true; }
 "
 

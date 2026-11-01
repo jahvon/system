@@ -132,7 +132,7 @@ executables:
     name: desktop
     description: |
       Set up GNOME Desktop Sharing on a server: `flow install server:desktop devbox`. Installs FreeRDP here,
-      limits the RDP port to the LAN and tailnet, turns off the screen lock, adds a passwordless keyring, and
+      turns off the screen lock, adds a passwordless keyring, and
       can set a new login. Weakens local security on purpose, for a home server. Safe to re-run. Interactive.
     exec:
       dir: //tools/servers

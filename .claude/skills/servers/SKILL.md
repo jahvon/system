@@ -35,7 +35,7 @@ opening a window. Hand it to the user:
 - `flow install server:sudoers <server>`: passwordless sudo for routine k3s commands only.
 - `flow install network:tailscale <server>`: install Tailscale and apply registry settings.
 - `flow install server:ssh-hardening <server>`: SSH keys only, with an automatic rollback if the test fails.
-- `flow install server:desktop <server>`: Desktop Sharing, RDP firewall rules, and the RDP login.
+- `flow install server:desktop <server>`: Desktop Sharing and the RDP login.
 - Creating a 1Password service account token for `flow install server:secrets <server>`. It only reaches the server if creation succeeds, and never appears in a terminal or transcript: `T=$(op service-account create "<server>" --vault flow:read_items --account my.1password.com --raw) && printf '%s' "$T" | ssh <server> 'umask 077; cat > ~/.config/op/service-account-token'; unset T`. Never print or read that token.
 
 ## Things to know
@@ -45,6 +45,7 @@ opening a window. Hand it to the user:
 - SSH prompts through the 1Password agent. If a run fails with `Permission denied`, 1Password may
   be locked or waiting for approval.
 - Never accept a changed host key on the user's behalf.
+- `ufw` is off on the k3s nodes. Don't enable it casually: its default-deny can break k3s networking, and rules left over from earlier setup would take effect. The home router has no port forwarding, so services are reachable from the LAN and tailnet, not the internet.
 - The desktop is GNOME Desktop Sharing in `extend` mode, because devbox has no monitor. Use FreeRDP, not Windows App, which hangs after login against libfreerdp 3.32.1 (FreeRDP#13845). Keep Remote Login off.
 - Never put a password in a `sudo` command's arguments, because sudo logs full command lines. Pass it over stdin to `sudo sh -c 'IFS= read -r p; ...'`, as `bin/desktop-setup.sh` does for `grdctl`.
 - In Mochi, or through MCP on flow without the `fix/mcp-agent-ergonomics` changes, arguments split
