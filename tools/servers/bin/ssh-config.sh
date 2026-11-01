@@ -18,7 +18,7 @@ trap 'rm -f "$tmp"' EXIT
     for name in $(yq -r '.servers | to_entries | .[] | select(.value.kind == "server") | .key' "$INVENTORY"); do
         aliases=$(N="$name" yq -r '(.servers[env(N)].aliases // []) | join(" ")' "$INVENTORY")
         echo ""
-        echo "Host $name${aliases:+ $aliases}"
+        echo "Host $name${aliases:+ $aliases} $name.$(yq -r '.network.domain' "$INVENTORY")"
         echo "    HostName $(reg_get "$name" .address)"
         echo "    User $(reg_get "$name" .user)"
         echo "    IdentityFile $SSH_PUBLIC_KEY"
