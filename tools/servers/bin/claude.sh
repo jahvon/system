@@ -80,7 +80,8 @@ chmod 600 "\$HOME/.claude.json"
 echo "[DONE] trusted \$(jq length "\$tmp") repos under ~/workspaces"
 rm -f "\$tmp"
 
-# Restarts Claude if it exits, including at boot before the network is ready.
+# Waits for claude.ai first, because Remote Control doesn't retry if the network isn't up when Claude starts.
+# Restarts Claude if it exits.
 mkdir -p "\$HOME/.config/systemd/user"
 cat > "\$HOME/.config/systemd/user/\$3.service" <<UNIT
 [Unit]
@@ -90,7 +91,7 @@ Description=Claude Code session for \$4, with Remote Control
 Type=oneshot
 RemainAfterExit=yes
 Environment=PATH=\$HOME/.local/bin:\$HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
-ExecStart=/usr/bin/tmux new-session -d -s \$3 -c \$checkout "zsh -lc 'while true; do claude --continue --remote-control \$4 || claude --remote-control \$4; sleep 5; done'"
+ExecStart=/usr/bin/tmux new-session -d -s \$3 -c \$checkout "zsh -lc 'until curl -s -o /dev/null -m 5 https://claude.ai; do sleep 5; done; while true; do claude --continue --remote-control \$4 || claude --remote-control \$4; sleep 5; done'"
 ExecStop=/usr/bin/tmux kill-session -t \$3
 
 [Install]
