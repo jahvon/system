@@ -42,6 +42,7 @@ opening a window. Hand it to the user:
 - SSH prompts through the 1Password agent. If a run fails with `Permission denied`, 1Password may
   be locked or waiting for approval.
 - Never accept a changed host key on the user's behalf.
+- Never put a password in a `sudo` command's arguments, because sudo logs full command lines. Pass it over stdin to `sudo sh -c 'IFS= read -r p; ...'`, as `bin/desktop-setup.sh` does for `grdctl`.
 - In Mochi, or through MCP on flow without the `fix/mcp-agent-ergonomics` changes, arguments split
   on spaces. Pass flag args after `--`, and run multi-word remote commands from the CLI. Failed runs
   may also report `isError: false`, so confirm with `get_execution_logs`.

@@ -33,9 +33,10 @@ ssh -t "$name" "
     if sudo grdctl --system status | grep -qE 'Username: *\(empty\)'; then
         echo 'Choose a username and password for remote login. Save the password in 1Password.'
         printf 'New RDP password: '; stty -echo; read -r rdp_pass; stty echo; echo
-        sudo grdctl --system rdp set-credentials $user \"\$rdp_pass\"; unset rdp_pass
+        # Sent over stdin because sudo logs full command lines, which would record the password.
+        printf '%s\\n' \"\$rdp_pass\" | sudo sh -c 'IFS= read -r p; exec grdctl --system rdp set-credentials $user \"\$p\"'; unset rdp_pass
     else
-        echo '[OK] RDP credentials are already set. To change them: sudo grdctl --system rdp set-credentials USER PASSWORD'
+        echo '[OK] RDP credentials are already set. To change them, see the servers skill.'
     fi &&
     sudo grdctl --system rdp enable &&
     sudo grdctl --system status | grep -E 'Status|Port|Username'
