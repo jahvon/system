@@ -50,8 +50,9 @@ else
 fi
 
 # Loaded in every shell, including the non-interactive ones flow and systemd sessions use.
-line='[ -f ~/.config/op/service-account-token ] && export OP_SERVICE_ACCOUNT_TOKEN="$(cat ~/.config/op/service-account-token)"'
+line='[ -s ~/.config/op/service-account-token ] && export OP_SERVICE_ACCOUNT_TOKEN="$(cat ~/.config/op/service-account-token)"'
 touch "$HOME/.zshenv.local"
+sed -i '/^\[ -f ~\/.config\/op\/service-account-token \]/d' "$HOME/.zshenv.local"
 grep -qxF "$line" "$HOME/.zshenv.local" || printf '%s\n' "$line" >> "$HOME/.zshenv.local"
 echo "[DONE] ~/.zshenv.local loads the token file when it exists"
 
