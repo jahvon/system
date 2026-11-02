@@ -6,6 +6,7 @@ tags: [obsidian, markdown, notes]
 executables:
   - verb: open
     name: obsidian
+    description: Opens the Obsidian app with the knowledge library.
     launch:
       app: obsidian
       uri: ~/Documents/Knowledge Library

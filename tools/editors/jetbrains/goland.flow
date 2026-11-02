@@ -4,6 +4,7 @@ tags: [ide]
 executables:
   - verb: open
     name: goland
+    description: Opens GoLand with the specified URI.
     launch:
       args:
         - pos: 1

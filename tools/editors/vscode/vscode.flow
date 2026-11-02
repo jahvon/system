@@ -4,6 +4,7 @@ executables:
   - verb: open
     visibility: public
     name: vscode
+    description: Opens Visual Studio Code with the specified URI.
     launch:
       args:
         - pos: 1
@@ -11,9 +12,9 @@ executables:
           default: "."
       uri: $URI
       app: "Visual Studio Code"
-
   - verb: "open"
     name: "workspace"
+    description: Opens the workspace in the IDE.
     launch:
       uri: "$FLOW_WORKSPACE_PATH"
       wait: true
