@@ -1,6 +1,6 @@
 #!/bin/sh
 # Operates Pi-hole on the DNS server named in the registry, through its CLI, so no API password is needed.
-#   usage: pihole.sh <status|summary|top-queries|top-blocked|clients|pause [seconds]|enable|flush|gravity|apply|records>
+#   usage: pihole.sh <status|summary|top-queries|top-blocked|clients|pause [seconds]|enable|flush|gravity|apply|records|client-names>
 set -eu
 DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 SERVERS_DIR="$DIR/../servers"
@@ -64,8 +64,24 @@ records() {
     ssh "$server" "docker exec pihole pihole-FTL --config dns.hosts '$json'" >/dev/null
 }
 
+# Names devices in Pi-hole after the names set in the Deco app. Pi-hole loads its own file for these,
+# so records from `records` are left alone. Only devices online right now are listed.
+client_names() {
+    file=/etc/pihole/hosts/client-names.list
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    ssh "$server" "docker exec pihole pihole-FTL sqlite3 -readonly -separator '$(printf '\t')' /etc/pihole/pihole-FTL.db 'select hwaddr, macVendor from network'" > "$tmp/vendors"
+    ssh "$server" 'docker exec pihole pihole-FTL --config dns.hosts' | tr -d '[]' | tr ',' '\n' | awk 'NF {print $1}' > "$tmp/reserved"
+    python3 "$DIR/deco.py" "$(yq -r '.network.router' "$INVENTORY")" "$tmp/vendors" "$tmp/reserved" > "$tmp/hosts"
+    [ -s "$tmp/hosts" ] || { echo "[ERROR] No names to apply. Pi-hole was not changed." >&2; exit 1; }
+    cat "$tmp/hosts"
+    ssh "$server" "docker exec -i pihole sh -c 'cat > $file && chown pihole:pihole $file && chmod 640 $file' && docker exec pihole pihole reloaddns" < "$tmp/hosts" >/dev/null
+    echo "[DONE] Named $(wc -l < "$tmp/hosts" | tr -d ' ') devices in Pi-hole"
+}
+
 case "${1:-}" in
     records) records ;;
+    client-names) client_names ;;
     status) pihole status 2>/dev/null; api dns/blocking | jq -r '"Blocking: \(.blocking)"' ;;
     summary) summary ;;
     top-queries) api 'stats/top_domains?count=15' | jq -r '.domains[] | "\(.count)\t\(.domain)"' ;;

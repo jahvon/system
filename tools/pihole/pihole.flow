@@ -105,6 +105,19 @@ executables:
       dir: //tools/pihole
       cmd: ./pihole.sh records
 
+  - verb: apply
+    name: client-names
+    description: |
+      Name devices in Pi-hole after the names set in the Deco app, or the maker and the end of the IP
+      for unnamed devices. Only devices online now are listed, so re-run after renaming a device,
+      adding one, or when an IP changes. Needs deco-admin-password in the vault. DNS keeps working.
+    exec:
+      dir: //tools/pihole
+      params:
+        - secretRef: deco-admin-password
+          envKey: DECO_PASSWORD
+      cmd: ./pihole.sh client-names
+
   - verb: open
     name: admin
     description: Open the Pi-hole admin interface in a browser.

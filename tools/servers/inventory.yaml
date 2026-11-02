@@ -5,6 +5,7 @@
 network:
   domain: malik.haus
   lan: 192.168.68.0/24
+  router: 192.168.68.1
   podCidr: 10.42.0.0/16
   dns:
     provider: pihole
