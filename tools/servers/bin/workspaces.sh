@@ -65,6 +65,7 @@ case "$action" in
                 echo "[WARN] system has local changes, so it was not updated"
             fi
             flow sync --git 2>&1 | tail -1'
+        "$SERVERS_DIR/bin/pull-repos.sh" "$name" || echo "[WARN] some repos on $name were not updated"
         registered
         ;;
     *)

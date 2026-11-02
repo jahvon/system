@@ -18,6 +18,7 @@ Outside the system repo, qualify refs as `system/…` (`flow show system/server:
 | Run a command on a server | `flow run server:command devbox 'uname -a'` |
 | Open a shell (humans) | `flow connect server:shell devbox` |
 | One-click equivalents | `flow check devbox:status`, `flow connect devbox:shell`, same for `workbox` |
+| Pull the latest repos and workspaces | `flow update server:repos devbox`; see the `fresh-repos` skill |
 | Open the Ubuntu desktop | `flow open devbox:desktop` |
 | Persistent Claude on a server | `flow start devbox:claude`, `flow show devbox:claude`, `flow connect devbox:claude`; `install`/`stop server:claude <server>` |
 | Compare registry with reality | `flow check network:drift` |

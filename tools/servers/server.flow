@@ -115,6 +115,21 @@ executables:
           required: true
       cmd: ./bin/workspaces.sh update "$SERVER"
 
+  - verb: update
+    name: repos
+    description: |
+      Fast-forward every clean repo under ~/workspaces and sync flow's git workspaces, on this machine or
+      on a server: `flow update server:repos devbox`. Changes checkouts, but skips any repo with local
+      changes or not on its default branch, and reports each one.
+    exec:
+      dir: //tools/servers
+      args:
+        - pos: 1
+          envKey: SERVER
+          required: false
+          default: ""
+      cmd: ./bin/pull-repos.sh "$SERVER"
+
   - verb: open
     name: desktop
     description: |
