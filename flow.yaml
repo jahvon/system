@@ -1,5 +1,9 @@
 # yaml-language-server: $schema=https://flowexec.io/schemas/workspace_schema.json
 
-displayName: "Main Workspace"
+displayName: "System"
 descriptionFile: "README.md"
-tags: [personal, development, productivity, tools]
+tags:
+  - personal
+  - development
+  - productivity
+  - tools
