@@ -41,6 +41,9 @@ workspaces:
     git: git@github.com:flowexec/mochi.git
     ref: main
     checkout: ~/workspaces/github.com/flowexec/mochi
+  journal:
+    git: git@github.com:jahvon/journal.git
+    ref: main
 
 servers:
   devbox:
@@ -55,7 +58,9 @@ servers:
     sessions:
       - workspace: kube
         checkout: ~/workspaces/github.com/jahvon/kube
-    workspaces: [system, agent-framework, kube, flow, mochi]
+      - workspace: journal
+        checkout: ~/workspaces/github.com/jahvon/journal
+    workspaces: [system, agent-framework, kube, flow, mochi, journal]
   workbox:
     kind: server
     address: 192.168.68.136
