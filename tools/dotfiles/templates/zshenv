@@ -28,6 +28,9 @@ export GOPATH="$HOME/go"
 export GOBIN="$GOPATH/bin"
 export MISE_NODE_COREPACK=true
 
+# Executables call ${CONTAINER_RUNTIME:-docker} rather than naming a runtime
+export CONTAINER_RUNTIME=docker
+
 source ~/.zsh/path.zsh
 
 # Local config
