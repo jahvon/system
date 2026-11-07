@@ -47,6 +47,7 @@ flow apply dotfiles:dotfiles        # plugins, symlinks, mise tools
 flow show dotfiles:                 # what is linked where
 flow install packages:completions   # regenerate flow/mochi zsh completions
 flow install packages:homebrew      # brew bundle from tools/packages/Brewfile
+flow setup containers:colima        # Colima as the docker runtime, started at login
 flow run bootstrap:ubuntu-server    # Linux server setup from an existing checkout
 flow install rust                   # opt-in Rust toolchain via mise
 flow install claude:setup           # Claude Code + agent-framework (CLAUDE.md, settings, plugins)
