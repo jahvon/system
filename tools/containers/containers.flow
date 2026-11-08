@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://flowexec.io/schemas/flowfile_schema.json
+
+visibility: public
+namespace: containers
+tags: [containers, docker, colima]
+description: Local container runtime - Colima with the docker CLI
+
+executables:
+  - verb: setup
+    name: colima
+    aliases: [runtime]
+    description: |
+      Make Colima the machine's container runtime: point the docker CLI at Homebrew's buildx and
+      compose plugins and the macOS keychain, create or start the Colima VM, and run it as a
+      login service. CPU and memory apply on each start; disk size only when the VM is created.
+    exec:
+      file: setup-colima.sh
+      args:
+        - flag: cpus
+          envKey: COLIMA_CPUS
+          type: int
+          default: "4"
+        - flag: memory
+          envKey: COLIMA_MEMORY
+          type: int
+          default: "6"
+        - flag: disk
+          envKey: COLIMA_DISK
+          type: int
+          default: "60"

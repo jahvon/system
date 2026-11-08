@@ -53,8 +53,11 @@ brew "mysql"
 brew "redis"
 
 # Containers and Kubernetes
-brew "podman"
 brew "colima"
+brew "docker"
+brew "docker-buildx"
+brew "docker-compose"
+brew "docker-credential-helper"
 brew "kubernetes-cli"
 brew "kubectx"
 brew "helm"

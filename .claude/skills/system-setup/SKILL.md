@@ -21,6 +21,7 @@ silently drifts from the repo.
 | What is linked where | `flow show dotfiles:` |
 | Regenerate flow/mochi completions | `flow install packages:completions` |
 | Homebrew packages (`tools/packages/Brewfile`) | `flow install packages:homebrew` |
+| Container runtime (Colima + docker CLI) | `flow setup containers:colima` |
 | iTerm profiles and colors | `flow install preferences:iterm` |
 | Claude Code + agent-framework | `flow install claude:setup` |
 | Rust (opt-in per machine) | `flow install rust` |
