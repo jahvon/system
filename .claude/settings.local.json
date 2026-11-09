@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "flow"
+  ],
+  "enableAllProjectMcpServers": true
+}
