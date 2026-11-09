@@ -13,6 +13,7 @@ path=(
   $HOME/go/bin
   $HOME/.cargo/bin
   $HOME/.local/bin
+  $HOME/.mochi/bin
   ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/bin}
   ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/sbin}
   $path
