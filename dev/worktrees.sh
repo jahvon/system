@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Git worktree housekeeping across every repo under $WORKSPACES, kept in step with Claude Code's
+# Git worktree housekeeping across every repo under the $WORKSPACES roots, kept in step with Claude Code's
 # per-project state (~/.claude/projects/<path>/ for memory and transcripts, and each checkout's
 # untracked .claude/settings.local.json).
 #
@@ -8,10 +8,10 @@
 #   worktrees.sh new NAME     # from inside a repo; BRANCH defaults to NAME
 #   worktrees.sh update       # sync local Claude settings between checkouts and their worktrees
 #
-# Env: WORKSPACES, CLAUDE_CONFIG_DIR (default ~/.claude), REPO (substring filter), APPLY, BRANCH
+# Env: WORKSPACES (colon-separated roots), CLAUDE_CONFIG_DIR (default ~/.claude), REPO (substring filter), APPLY, BRANCH
 set -euo pipefail
 
-WORKSPACES="${WORKSPACES:-$HOME/workspaces}"
+WORKSPACES="${WORKSPACES:-$HOME/workspaces:$HOME/dev}"
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 PROJECTS="$CLAUDE_DIR/projects"
 APPLY="${APPLY:-false}"
@@ -24,11 +24,27 @@ die() { log "error: $*"; exit 1; }
 dry() { [ "$APPLY" != "true" ]; }
 act() { if dry; then log "  [dry-run] $*"; else log "  $*"; fi; }
 
+# Short display name: the repo path relative to its root, minus a github.com/ prefix
+repo_name() {
+  local roots root name="$1"
+  IFS=: read -ra roots <<< "$WORKSPACES"
+  for root in "${roots[@]}"; do
+    [[ "$1" == "$root"/* ]] && { name="${1#"$root"/}"; break; }
+  done
+  printf '%s' "${name#github.com/}"
+}
+
 # Claude Code names a project directory after its path with every non-alphanumeric character as '-'
 sanitize() { printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g'; }
 
 repos() {
-  find "$WORKSPACES" -mindepth 2 -maxdepth 4 -type d -name .git -not -path '*/node_modules/*' 2>/dev/null \
+  local roots=() root existing=()
+  IFS=: read -ra roots <<< "$WORKSPACES"
+  for root in "${roots[@]}"; do
+    if [ -d "$root" ]; then existing+=("$root"); fi
+  done
+  [ ${#existing[@]} -gt 0 ] || return 0
+  find "${existing[@]}" -mindepth 2 -maxdepth 4 -type d -name .git -not -path '*/node_modules/*' 2>/dev/null \
     | sed 's|/\.git$||' | sort | while read -r r; do
       [[ -z "${REPO:-}" || "$r" == *"$REPO"* ]] && printf '%s\n' "$r"
     done
@@ -158,7 +174,7 @@ cmd_list() {
         [ -n "$merged" ] && state="$state, merged ($merged)"
         never_committed "$repo" "$branch" && state="$state, no commits yet"
       fi
-      printf '%-28s %-46s %-30s %s\n' "${repo#"$WORKSPACES"/github.com/}" "${wt/#$HOME/~}" "$branch" "$state"
+      printf '%-28s %-46s %-30s %s\n' "$(repo_name "$repo")" "${wt/#$HOME/~}" "$branch" "$state"
     done < <(linked_worktrees "$repo")
   done < <(repos)
 }
@@ -167,7 +183,8 @@ cmd_clean() {
   local repo wt branch merged removed=0 kept=0 stale=0
   dry && log "dry run: nothing will change (rerun with apply=true)"
   while read -r repo; do
-    local name="${repo#"$WORKSPACES"/github.com/}" pruned
+    local name pruned
+    name="$(repo_name "$repo")"
     pruned="$(git -C "$repo" worktree prune --dry-run -v 2>&1 || true)"
     if [ -n "$pruned" ]; then
       act "$name: prune records of deleted worktrees"
@@ -244,7 +261,8 @@ cmd_update() {
   local repo wt branch
   dry && log "dry run: nothing will change (rerun with apply=true)"
   while read -r repo; do
-    local name="${repo#"$WORKSPACES"/github.com/}"
+    local name
+    name="$(repo_name "$repo")"
     while IFS=$'\t' read -r wt branch; do
       [ -n "$wt" ] && [ -d "$wt" ] || continue
       # Permissions granted in either place should reach both

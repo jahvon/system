@@ -2,7 +2,7 @@
 
 visibility: public
 tags: [git, worktree, claude]
-description: Git worktrees across every repo in ~/workspaces, kept in step with Claude Code state
+description: Git worktrees across every repo in ~/workspaces and ~/dev, kept in step with Claude Code state
 
 executables:
   - verb: list

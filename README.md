@@ -54,7 +54,7 @@ flow install claude:setup           # Claude Code + agent-framework (CLAUDE.md, 
 flow install preferences:iterm      # Everforest iTerm profiles (shell, flow library, k9s)
 flow migrate flow:vault -- --target=op --to=<vault>   # copy a flow vault into 1Password/AWS SSM (dry run first)
 
-# Worktrees (every repo under ~/workspaces; dry run unless --apply=true)
+# Worktrees (every repo under ~/workspaces and ~/dev; dry run unless --apply=true)
 flow list worktrees
 flow new worktree <name> -- --branch=feat/x    # run inside a repo; lands in .claude/worktrees/
 flow update worktrees -- --apply=true          # sync .claude/settings.local.json both ways

@@ -7,8 +7,8 @@ allowed-tools: mcp__flow__execute, mcp__flow__get_executable, Bash(flow:*), Bash
 # Worktrees
 
 Four executables in the `system` workspace handle worktrees across every repo under
-`~/workspaces`. Outside the system repo, qualify them as `system/…`
-(`flow clean system/worktrees`).
+`~/workspaces` and `~/dev` (override with `WORKSPACES=dir1:dir2`). Outside the system repo,
+qualify them as `system/…` (`flow clean system/worktrees`).
 
 | Goal | Run |
 |------|-----|
