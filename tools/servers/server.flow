@@ -130,6 +130,21 @@ executables:
           default: ""
       cmd: ./bin/pull-repos.sh "$SERVER"
 
+  - verb: update
+    name: homelab
+    description: |
+      Ask which server to update, then check its health and fast-forward its repos: check server:status
+      followed by update server:repos. For scripts and agents, call those two directly with the server name.
+    serial:
+      params:
+        - envKey: SERVER
+          prompt: Which server?
+      execs:
+        - ref: check server:status
+          args: ["$SERVER"]
+        - ref: update server:repos
+          args: ["$SERVER"]
+
   - verb: open
     name: desktop
     description: |
