@@ -5,3 +5,5 @@ tools/dotfiles/bin/*
 Brewfile.lock.json
 
 *.work
+# Claude Code per-machine settings
+.claude/settings.local.json
