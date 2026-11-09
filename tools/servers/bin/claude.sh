@@ -40,15 +40,19 @@ else
 fi
 
 # Servers run the cluster, so sessions ask before risky actions rather than using auto mode. Ad hoc flow
-# commands are denied because project settings pre-approve them, which would bypass those prompts.
+# commands are denied, through flow or mochi, because project settings pre-approve them, which would bypass those prompts.
+# With mochi installed, agent-framework hides the project flow server in favor of mochi's, so only approve it without mochi.
 overlay="\$HOME/.claude/settings.overlay.json"
 [ -f "\$overlay" ] || echo '{}' > "\$overlay"
+mochi=false
+{ command -v mochi || [ -x "\$HOME/.mochi/bin/mochi" ]; } >/dev/null 2>&1 && mochi=true
 tmp=\$(mktemp)
-jq '.permissions.defaultMode = "default"
-    | .permissions.deny = (((.permissions.deny // []) + ["mcp__flow__run_command", "mcp__flow__run_python", "mcp__flow__run_executable"]) | unique)
-    | .enabledMcpjsonServers = (((.enabledMcpjsonServers // []) + ["flow"]) | unique)' \
+jq --argjson mochi "\$mochi" '.permissions.defaultMode = "default"
+    | .permissions.deny = (((.permissions.deny // []) + [("flow", "mochi") as \$s | "run_command", "run_python", "run_executable" | "mcp__\(\$s)__\(.)"]) | unique)
+    | if \$mochi then .enabledMcpjsonServers = ((.enabledMcpjsonServers // []) - ["flow"])
+      else .enabledMcpjsonServers = (((.enabledMcpjsonServers // []) + ["flow"]) | unique) end' \
     "\$overlay" > "\$tmp" && mv "\$tmp" "\$overlay"
-echo "[DONE] permission mode: default, ad hoc flow commands denied, flow MCP approved"
+echo "[DONE] permission mode: default, ad hoc flow and mochi commands denied, \$([ "\$mochi" = true ] && echo 'mochi MCP in use' || echo 'flow MCP approved')"
 
 af=\$(flow workspace list -o json | jq -r '.workspaces[] | select(.name == "agent-framework") | .path')
 if [ -n "\$af" ]; then
