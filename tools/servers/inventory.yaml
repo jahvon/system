@@ -55,11 +55,6 @@ servers:
     desktop:
       protocol: rdp
       port: 3389
-    sessions:
-      - workspace: kube
-        checkout: ~/workspaces/github.com/jahvon/kube
-      - workspace: journal
-        checkout: ~/workspaces/github.com/jahvon/journal
     workspaces: [system, agent-framework, kube, flow, mochi, journal]
   workbox:
     kind: server

@@ -160,9 +160,10 @@ executables:
   - verb: install
     name: claude
     description: |
-      Prepare a server for Claude sessions: `flow install server:claude devbox [workspace]`. Clones the session's
-      checkout, sets the permission mode to default, updates agent-framework and system skills, trusts every repo
-      under ~/workspaces, approves the flow MCP server, and enables a boot service. Restarts a running session.
+      Prepare a server's Remote Control servers: `flow install server:claude devbox [workspace]`, one per workspace in
+      its registry entry, all of them by default. Clones each checkout under ~/workspaces, sets the permission mode to
+      default, updates agent-framework and system skills, trusts every repo under ~/workspaces, approves the flow MCP
+      server, and enables and starts a boot service per workspace. Briefly restarts every running server.
       Changes the server. Safe to re-run. Remote Control needs a full /login there.
     exec:
       dir: //tools/servers
@@ -178,8 +179,8 @@ executables:
   - verb: start
     name: claude
     description: |
-      Start a persistent Remote Control server in tmux: `flow start server:claude devbox [workspace]`. Start new
-      sessions on it, each in its own worktree, from the desktop app, claude.ai, or mobile. Safe to re-run; one server per workspace.
+      Start the persistent Remote Control servers in tmux: `flow start server:claude devbox [workspace]`, all by default.
+      Start new sessions on them, each in its own worktree, from the desktop app, claude.ai, or mobile. Safe to re-run.
     exec:
       dir: //tools/servers
       args:
@@ -194,7 +195,7 @@ executables:
   - verb: show
     name: claude
     tags: [read-only]
-    description: Show whether a server's Claude session is running, and its current screen. Read-only. Exits 1 if not running.
+    description: Show whether a server's Remote Control servers are running, and their screens. Read-only. Exits 1 if any is down.
     exec:
       dir: //tools/servers
       args:
@@ -209,8 +210,8 @@ executables:
   - verb: connect
     name: claude
     description: |
-      Attach to a server's Claude session in iTerm. Detach with Ctrl-b d; the session keeps running. Agents get
-      the command printed instead, and should use `claude -p -c` in the checkout through run server:command.
+      Attach to a workspace's Remote Control server in iTerm (the first workspace by default). Detach with Ctrl-b d;
+      it keeps running. Agents get the command printed instead.
     exec:
       dir: //tools/servers
       args:
@@ -224,7 +225,7 @@ executables:
 
   - verb: stop
     name: claude
-    description: Stop a server's Claude session by ending its tmux session. Conversation history stays; start resumes it.
+    description: Stop a server's Remote Control servers, all by default. Sessions from the last ~4 hours come back on start.
     exec:
       dir: //tools/servers
       args:
