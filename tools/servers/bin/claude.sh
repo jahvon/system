@@ -1,7 +1,7 @@
 #!/bin/sh
-# Sets up and runs persistent Claude Code sessions on a server, from the sessions in the registry.
-# Each is a systemd user service running tmux with Remote Control on, so it starts at boot, survives
-# disconnects, and is reachable from claude.ai.
+# Sets up and runs persistent Remote Control servers on a server, one per registry session.
+# Each is a systemd user service running tmux, so it starts at boot and survives disconnects. New
+# sessions can be started on it, each in its own worktree, from the desktop app, claude.ai, or mobile.
 #   usage: claude.sh <install|start|status|connect|stop> <server> [workspace]
 set -eu
 SERVERS_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -85,17 +85,17 @@ echo "[DONE] trusted \$(jq length "\$tmp") repos under ~/workspaces"
 rm -f "\$tmp"
 
 # Waits for claude.ai first, because Remote Control doesn't retry if the network isn't up when Claude starts.
-# Restarts Claude if it exits.
+# Restarts the server if it exits; it gives up after about 10 minutes offline.
 mkdir -p "\$HOME/.config/systemd/user"
 cat > "\$HOME/.config/systemd/user/\$3.service" <<UNIT
 [Unit]
-Description=Claude Code session for \$4, with Remote Control
+Description=Claude Code Remote Control server for \$4
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 Environment=PATH=\$HOME/.local/bin:\$HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
-ExecStart=/usr/bin/tmux new-session -d -s \$3 -c \$checkout "zsh -lc 'until curl -s -o /dev/null -m 5 https://claude.ai; do sleep 5; done; while true; do claude --continue --remote-control \$4 || claude --remote-control \$4; sleep 5; done'"
+ExecStart=/usr/bin/tmux new-session -d -s \$3 -c \$checkout "zsh -lc 'until curl -s -o /dev/null -m 5 https://claude.ai; do sleep 5; done; while true; do claude remote-control --name \$4 --spawn worktree --capacity 8 --permission-mode default; sleep 5; done'"
 ExecStop=/usr/bin/tmux kill-session -t \$3
 
 [Install]

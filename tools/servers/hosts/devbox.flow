@@ -45,7 +45,7 @@ executables:
 
   - verb: start
     name: claude
-    description: Start or confirm the persistent Claude session on devbox, with Remote Control on. Safe to re-run.
+    description: Start or confirm the Remote Control server on devbox, where you can start new Claude sessions. Safe to re-run.
     exec:
       dir: //tools/servers
       cmd: ./bin/claude.sh start devbox

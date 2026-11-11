@@ -178,8 +178,8 @@ executables:
   - verb: start
     name: claude
     description: |
-      Start a persistent Claude session in tmux, with Remote Control on: `flow start server:claude devbox [workspace]`.
-      Resumes the last conversation. Safe to re-run; one session per workspace. Reach it from claude.ai or the mobile app.
+      Start a persistent Remote Control server in tmux: `flow start server:claude devbox [workspace]`. Start new
+      sessions on it, each in its own worktree, from the desktop app, claude.ai, or mobile. Safe to re-run; one server per workspace.
     exec:
       dir: //tools/servers
       args:
