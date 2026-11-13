@@ -30,7 +30,7 @@ executables:
 
   - verb: connect
     name: claude
-    description: Attach to the Claude session on devbox in iTerm. Detach with Ctrl-b d; it keeps running.
+    description: Attach to the first Remote Control server on devbox in iTerm. Detach with Ctrl-b d; it keeps running.
     exec:
       dir: //tools/servers
       cmd: ./bin/claude.sh connect devbox
@@ -38,14 +38,14 @@ executables:
   - verb: show
     name: claude
     tags: [read-only]
-    description: Show whether the Claude session on devbox is running, and its current screen. Read-only.
+    description: Show whether devbox's Remote Control servers are running, and their screens. Read-only.
     exec:
       dir: //tools/servers
       cmd: ./bin/claude.sh status devbox
 
   - verb: start
     name: claude
-    description: Start or confirm the persistent Claude session on devbox, with Remote Control on. Safe to re-run.
+    description: Start or confirm devbox's Remote Control servers, one per workspace, where you can start new Claude sessions. Safe to re-run.
     exec:
       dir: //tools/servers
       cmd: ./bin/claude.sh start devbox
