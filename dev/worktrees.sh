@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Git worktree housekeeping across every repo under the $WORKSPACES roots, kept in step with Claude Code's
+# Git worktree housekeeping across every repo under the $WORKTREE_ROOTS roots, kept in step with Claude Code's
 # per-project state (~/.claude/projects/<path>/ for memory and transcripts, and each checkout's
 # untracked .claude/settings.local.json).
 #
@@ -8,10 +8,10 @@
 #   worktrees.sh new NAME     # from inside a repo; BRANCH defaults to NAME
 #   worktrees.sh update       # sync local Claude settings between checkouts and their worktrees
 #
-# Env: WORKSPACES (colon-separated roots), CLAUDE_CONFIG_DIR (default ~/.claude), REPO (substring filter), APPLY, BRANCH
+# Env: WORKTREE_ROOTS (colon-separated roots), CLAUDE_CONFIG_DIR (default ~/.claude), REPO (substring filter), APPLY, BRANCH
 set -euo pipefail
 
-WORKSPACES="${WORKSPACES:-$HOME/workspaces:$HOME/dev}"
+WORKTREE_ROOTS="${WORKTREE_ROOTS:-$HOME/workspaces:$HOME/dev}"
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 PROJECTS="$CLAUDE_DIR/projects"
 APPLY="${APPLY:-false}"
@@ -27,7 +27,7 @@ act() { if dry; then log "  [dry-run] $*"; else log "  $*"; fi; }
 # Short display name: the repo path relative to its root, minus a github.com/ prefix
 repo_name() {
   local roots root name="$1"
-  IFS=: read -ra roots <<< "$WORKSPACES"
+  IFS=: read -ra roots <<< "$WORKTREE_ROOTS"
   for root in "${roots[@]}"; do
     [[ "$1" == "$root"/* ]] && { name="${1#"$root"/}"; break; }
   done
@@ -39,7 +39,7 @@ sanitize() { printf '%s' "$1" | sed 's/[^A-Za-z0-9]/-/g'; }
 
 repos() {
   local roots=() root existing=()
-  IFS=: read -ra roots <<< "$WORKSPACES"
+  IFS=: read -ra roots <<< "$WORKTREE_ROOTS"
   for root in "${roots[@]}"; do
     if [ -d "$root" ]; then existing+=("$root"); fi
   done
